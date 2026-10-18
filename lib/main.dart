@@ -170,7 +170,16 @@ class _WebHomeState extends State<WebHome> {
         },
       )
       ..setNavigationDelegate(
-        NavigationDelegate(onPageFinished: (_) => _markPage()),
+        NavigationDelegate(
+          onPageFinished: (_) => _markPage(),
+          onNavigationRequest: (req) {
+            if (req.url.startsWith('vpa://update')) {
+              _openUpdate();
+              return NavigationDecision.prevent;
+            }
+            return NavigationDecision.navigate;
+          },
+        ),
       )
       ..loadFlutterAsset('assets/web/index.html');
     _checkUpdate();
