@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 /// Wird beim Bauen von GitHub gesetzt (laufende Nummer des Builds).
@@ -45,27 +44,6 @@ class LernApp extends StatelessWidget {
 // Update-Prüfung über GitHub
 // ---------------------------------------------------------------------------
 
-Future<String> loadToken() async {
-  // Der Schlüssel ist optional (Repo ist öffentlich). Fehler hier dürfen die Update-Suche nie verhindern.
-  try {
-    final p = await SharedPreferences.getInstance();
-    return p.getString('gh_token') ?? '';
-  } catch (_) {
-    return '';
-  }
-}
-
-Future<void> saveToken(String t) async {
-  try {
-    final p = await SharedPreferences.getInstance();
-    if (t.isEmpty) {
-      await p.remove('gh_token');
-    } else {
-      await p.setString('gh_token', t);
-    }
-  } catch (_) {}
-}
-
 class UpdateInfo {
   UpdateInfo(this.build, this.browserUrl, this.apiUrl);
 
@@ -75,12 +53,10 @@ class UpdateInfo {
 }
 
 Future<UpdateInfo?> fetchLatest() async {
-  final token = await loadToken();
   final headers = <String, String>{
     'Accept': 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   };
-  if (token.isNotEmpty) headers['Authorization'] = 'Bearer $token';
   final r = await http
       .get(
         Uri.parse(
@@ -89,21 +65,6 @@ Future<UpdateInfo?> fetchLatest() async {
         headers: headers,
       )
       .timeout(const Duration(seconds: 20));
-  if (r.statusCode == 401 || r.statusCode == 403) {
-    throw Exception('Der Schlüssel ist ungültig oder abgelaufen.');
-  }
-  if (r.statusCode == 404) {
-    if (token.isEmpty) {
-      throw Exception(
-        'Die Versionen sind nicht erreichbar. Prüfe die Internetverbindung '
-        'oder trage unten einen Schlüssel ein, falls das Repo privat ist.',
-      );
-    }
-    throw Exception(
-      'Mit diesem Schlüssel ist das Repo nicht erreichbar. '
-      'Prüfe, ob er für das Repo gilt.',
-    );
-  }
   if (r.statusCode != 200) {
     throw Exception('GitHub antwortet mit Status ${r.statusCode}');
   }
@@ -126,27 +87,9 @@ Future<UpdateInfo?> fetchLatest() async {
   return UpdateInfo(build, browser, api);
 }
 
-/// Öffnet den Download der APK. Bei privatem Repo mit Schlüssel über die API;
-/// die Weiterleitung auf den Speicher wird ohne Schlüssel aufgerufen.
-Future<http.StreamedResponse> openApk(UpdateInfo info, http.Client client) async {
-  final token = await loadToken();
-  if (token.isEmpty) {
-    return client.send(http.Request('GET', Uri.parse(info.browserUrl)));
-  }
-  final req = http.Request('GET', Uri.parse(info.apiUrl))
-    ..followRedirects = false
-    ..headers.addAll({
-      'Accept': 'application/octet-stream',
-      'Authorization': 'Bearer $token',
-    });
-  final resp = await client.send(req);
-  if (resp.statusCode >= 300 && resp.statusCode < 400) {
-    final loc = resp.headers['location'];
-    await resp.stream.drain<void>();
-    if (loc == null) throw Exception('Keine Weiterleitung für den Download');
-    return client.send(http.Request('GET', Uri.parse(loc)));
-  }
-  return resp;
+/// Öffnet den Download der APK (das Repo ist öffentlich, kein Schlüssel nötig).
+Future<http.StreamedResponse> openApk(UpdateInfo info, http.Client client) {
+  return client.send(http.Request('GET', Uri.parse(info.browserUrl)));
 }
 
 // ---------------------------------------------------------------------------
@@ -253,48 +196,11 @@ class _UpdatePageState extends State<UpdatePage> {
   double? _progress;
   bool _busy = false;
   UpdateInfo? _info;
-  final TextEditingController _tokenCtl = TextEditingController();
-  bool _hasToken = false;
 
   @override
   void initState() {
     super.initState();
-    loadToken().then((t) {
-      if (mounted) setState(() => _hasToken = t.isNotEmpty);
-    });
     _check();
-  }
-
-  @override
-  void dispose() {
-    _tokenCtl.dispose();
-    super.dispose();
-  }
-
-  Future<void> _saveToken() async {
-    final t = _tokenCtl.text.trim();
-    await saveToken(t);
-    _tokenCtl.clear();
-    if (!mounted) return;
-    setState(() => _hasToken = t.isNotEmpty);
-    FocusScope.of(context).unfocus();
-    await _check();
-  }
-
-  Future<void> _pasteToken() async {
-    final d = await Clipboard.getData('text/plain');
-    final t = (d?.text ?? '').trim();
-    if (t.isEmpty || !mounted) return;
-    setState(() => _tokenCtl.text = t);
-  }
-
-  Future<void> _clearToken() async {
-    await saveToken('');
-    if (!mounted) return;
-    setState(() {
-      _hasToken = false;
-      _status = 'Schlüssel gelöscht.';
-    });
   }
 
   Future<void> _check() async {
@@ -423,48 +329,6 @@ class _UpdatePageState extends State<UpdatePage> {
                   FilledButton(
                     onPressed: _busy ? null : _install,
                     child: const Text('Update installieren'),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'Zugriffsschlüssel',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _hasToken
-                  ? 'Ein Schlüssel ist auf diesem Gerät gespeichert.'
-                  : 'Nur nötig, wenn das Repo privat ist. Normalerweise brauchst '
-                      'du hier nichts einzutragen.',
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _tokenCtl,
-              obscureText: true,
-              enableSuggestions: false,
-              autocorrect: false,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Schlüssel einfügen',
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              children: [
-                OutlinedButton(
-                  onPressed: _busy ? null : _pasteToken,
-                  child: const Text('Aus Zwischenablage einfügen'),
-                ),
-                FilledButton.tonal(
-                  onPressed: _busy ? null : _saveToken,
-                  child: const Text('Schlüssel speichern'),
-                ),
-                if (_hasToken)
-                  OutlinedButton(
-                    onPressed: _busy ? null : _clearToken,
-                    child: const Text('Schlüssel löschen'),
                   ),
               ],
             ),
