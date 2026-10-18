@@ -233,7 +233,7 @@
     opt = opt || {};
     var S = { page: opt.page || 'init', sp: '', msg: '', v: {}, expl: null, route: [], tmp: null, sec: [], scroll: 0, plan: null };
     root.classList.add('mcdu');
-    var top = el('div', 'mc-top', '<span class="mc-bar"><i></i> BRT</span><span class="mc-name">MCDU 1</span><span class="mc-bar">DIM <i></i></span>');
+    var top = el('div', 'mc-top', '<span class="mc-ann"><b class="fail">FAIL</b><b class="fm">FM</b></span><span class="mc-name">MCDU</span><span class="mc-ann"><b class="ind">IND</b><b class="rdy">RDY</b></span>');
     var wrap = el('div', 'mc-wrap');
     var screen = el('div', 'mc-screen'); screen.style.gridColumn = '2'; screen.style.gridRow = '1 / span 14';
     wrap.appendChild(screen);
@@ -247,13 +247,23 @@
       });
     }
     var keys = el('div', 'mc-keys');
-    var pk = el('div', 'mc-pk'); KEYS_PAGE.forEach(function (k) { var b = el('button', 'mk pg', k[0]); b.type = 'button'; b.dataset.pg = k[1]; pk.appendChild(b); });
-    var arr = el('div', 'mc-arr'); [['◀', 'l'], ['▶', 'r'], ['▲', 'up'], ['▼', 'dn']].forEach(function (a) { var b = el('button', 'mk pg', a[0]); b.type = 'button'; b.dataset.ar = a[1]; arr.appendChild(b); });
+    var pk = el('div', 'mc-pk');
+    var PL = { 'RAD NAV': 'RAD<br>NAV', 'FUEL PRED': 'FUEL<br>PRED', 'SEC F-PLN': 'SEC<br>F-PLN', 'ATC COMM': 'ATC<br>COMM', 'MCDU MENU': 'MCDU<br>MENU' };
+    var PM = {}; KEYS_PAGE.forEach(function (k) { PM[k[0]] = k[1]; });
+    var AR = { '←': 'l', '→': 'r', '↑': 'up', '↓': 'dn' };
+    [['DIR', 'PROG', 'PERF', 'INIT', 'DATA', null], ['F-PLN', 'RAD NAV', 'FUEL PRED', 'SEC F-PLN', 'ATC COMM', 'MCDU MENU'], ['AIRPORT', null, null, null, '←', '↑'], [null, null, null, null, '→', '↓']].forEach(function (row) {
+      row.forEach(function (k) {
+        if (!k) { pk.appendChild(el('span', 'mk-gap')); return; }
+        var b = el('button', 'mk pg' + (AR[k] ? ' ar' : ''), PL[k] || k); b.type = 'button';
+        if (AR[k]) b.dataset.ar = AR[k]; else b.dataset.pg = PM[k];
+        pk.appendChild(b);
+      });
+    });
     var alpha = el('div', 'mc-alpha'); LETTERS.forEach(function (c) { var b = el('button', 'mk', c); b.type = 'button'; b.dataset.ch = c; alpha.appendChild(b); });
-    ['SP', '/', 'OVFY', 'CLR'].forEach(function (c) { var b = el('button', 'mk' + (c === 'CLR' ? ' clr' : ''), c); b.type = 'button'; b.dataset.ch = c; alpha.appendChild(b); });
+    ['SP', 'OVFY', '/', 'CLR'].forEach(function (c) { var b = el('button', 'mk' + (c === 'CLR' ? ' clr' : ''), c); b.type = 'button'; b.dataset.ch = c; alpha.appendChild(b); });
     var num = el('div', 'mc-num'); ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', '+/-'].forEach(function (c) { var b = el('button', 'mk n', c); b.type = 'button'; b.dataset.ch = c; num.appendChild(b); });
-    var kb = el('div', 'mc-kb'); kb.appendChild(alpha); kb.appendChild(num);
-    keys.appendChild(pk); keys.appendChild(arr); keys.appendChild(kb);
+    var kb = el('div', 'mc-kb'); kb.appendChild(num); kb.appendChild(alpha);
+    keys.appendChild(pk); keys.appendChild(kb);
     root.appendChild(top); root.appendChild(wrap); root.appendChild(keys);
     root.tabIndex = 0;
 
@@ -266,7 +276,7 @@
         h += '<div class="ln ti' + (pg.tmp ? ' amb' : '') + '">' + esc(pg.title) + (pg.sub ? '<small>' + esc(pg.sub) + '</small>' : '') + '</div>';
         pg.rows.forEach(function (r) {
           h += '<div class="ln lb"><span>' + esc(r.l) + '</span><span>' + esc(r.r) + '</span></div>';
-          h += '<div class="ln da"><span class="' + (r.lin ? 'in ' : '') + (r.lamb ? 'amb' : '') + '">' + esc(r.ld) + '</span><span class="' + (r.rin ? 'in ' : '') + (r.ramb ? 'amb' : '') + '">' + esc(r.rd) + '</span></div>';
+          h += '<div class="ln da"><span class="' + (r.lin ? 'cy ' : '') + (r.lamb ? 'amb' : '') + '">' + esc(r.ld) + '</span><span class="' + (r.rin ? 'cy ' : '') + (r.ramb ? 'amb' : '') + '">' + esc(r.rd) + '</span></div>';
         });
       }
       var sp = S.msg ? '<span class="msg">' + esc(S.msg) + '</span>' : '<span class="sp">' + esc(S.sp) + '</span><span class="cur"></span>';
@@ -278,7 +288,8 @@
         lsk['L' + i].classList.toggle('act', !!r.lk); lsk['R' + i].classList.toggle('act', !!r.rk);
         lsk['L' + i].dataset.f = r.lk ? (r.fe ? r.fe.k : r.lk) : ''; lsk['R' + i].dataset.f = r.rk || '';
       }
-      pk.querySelectorAll('.mk').forEach(function (b) { var pg2 = S.page === 'initb' ? 'init' : S.page.indexOf('perf') === 0 ? 'perf' : S.page.indexOf('data') === 0 ? 'data' : S.page === 'apt' ? 'apt' : S.page; b.classList.toggle('on', b.dataset.pg === pg2); });
+      /* kein Hervorheben der aktiven Seitentaste: das Original hat das nicht */
+      false && pk.querySelectorAll('.mk').forEach(function (b) { var pg2 = S.page === 'initb' ? 'init' : S.page.indexOf('perf') === 0 ? 'perf' : S.page.indexOf('data') === 0 ? 'data' : S.page === 'apt' ? 'apt' : S.page; b.classList.toggle('on', b.dataset.pg === pg2); });
       if (opt.onChange) opt.onChange(S);
       showExpl();
     }
