@@ -1,0 +1,22 @@
+name: bzf_lernapp
+description: A320 Lernapp mit MCDU-Trainer und Airbus-Panel.
+publish_to: 'none'
+version: 2.0.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  shared_preferences: ^2.2.0
+  webview_flutter: ^4.10.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/web/
+    - assets/web/css/
+    - assets/web/js/
+    - assets/web/fonts/

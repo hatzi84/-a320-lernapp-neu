@@ -1,0 +1,10 @@
+<!doctype html><html lang="de" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>A320 Lernapp</title><link rel="stylesheet" href="css/fonts.css"><link rel="stylesheet" href="css/neu.css"><link rel="stylesheet" href="css/app.css"></head>
+<body data-page="panel"><div class="app"><div class="apptop"><h1>Cockpit-Panel</h1><span class="sub2">Übungsmodus · kein Sim</span></div>
+<div class="paneltabs" id="tabs"><button class="on" data-t="ovhd">Overhead</button><button data-t="fcu">Mittelkonsole · FCU</button><button data-t="mcdu">MCDU</button><button data-t="gnd">Boden</button></div>
+<div class="main"><div id="treal"></div></div></div>
+<script src="js/navdata.js"></script><script src="js/mcdu.js"></script><script src="js/tablet-airbus2.js"></script><script src="js/tablet-airbus.js"></script><script src="js/nav.js"></script>
+<script>
+var root=document.getElementById('treal'),tabs=document.getElementById('tabs');
+VpAAirbus.mount(root,'ovhd');
+tabs.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(tabs.children,function(x){x.classList.toggle('on',x===b);});VpAAirbus.mount(root,b.dataset.t);});
+</script></body></html>

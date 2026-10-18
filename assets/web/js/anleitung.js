@@ -1,0 +1,119 @@
+/* MCDU-Anleitung: Kapitel mit Zeichnungen. Vereinfachter Nachbau nach dem A320-Standard, Einzelheiten im A32NX können abweichen. */
+(function () {
+  var COL = { g: '#4ce38a', c: '#41d0ff', a: '#ffb347', w: '#f2f6fa', y: '#f5e663', m: '#ff7de0' };
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  function mark(x, y, n) { return '<circle cx="' + x + '" cy="' + y + '" r="11" fill="#2fb8a6"/><text x="' + x + '" y="' + (y + 4.5) + '" text-anchor="middle" font-size="13" font-weight="700" fill="#04201c" font-family="Arial">' + n + '</text>'; }
+  function svgWrap(w, h, inner, label) { return '<svg class="dia" viewBox="0 0 ' + w + ' ' + h + '" role="img" aria-label="' + esc(label) + '">' + inner + '</svg>'; }
+
+  /* MCDU als Zeichnung mit Nummern */
+  function anatomy() {
+    var h = '<rect x="20" y="10" width="320" height="520" rx="18" fill="#1e262f" stroke="#3a4655" stroke-width="2"/>';
+    h += '<text x="48" y="32" fill="#93a1ae" font-size="11" font-family="Arial">BRT</text><text x="172" y="32" fill="#93a1ae" font-size="11" font-family="Arial">MCDU 1</text><text x="292" y="32" fill="#93a1ae" font-size="11" font-family="Arial">DIM</text>';
+    h += '<rect x="68" y="42" width="224" height="190" rx="6" fill="#02070a" stroke="#0c1218" stroke-width="2"/>';
+    for (var i = 0; i < 6; i++) { h += '<rect x="34" y="' + (60 + i * 28) + '" width="26" height="12" rx="3" fill="#6b7a8a"/><rect x="300" y="' + (60 + i * 28) + '" width="26" height="12" rx="3" fill="#6b7a8a"/>'; }
+    h += '<rect x="76" y="208" width="208" height="18" fill="#0a131a"/><text x="82" y="221" fill="#f2f6fa" font-size="12" font-family="monospace">EDDF/EDDM_</text>';
+    var keys = ['DIR', 'PROG', 'PERF', 'INIT', 'DATA', 'F-PLN', 'RAD NAV', 'FUEL', 'SEC', 'ATC', 'MENU', 'AIRPORT'];
+    keys.forEach(function (k, n) { var x = 34 + (n % 6) * 52, y = 248 + Math.floor(n / 6) * 30; h += '<rect x="' + x + '" y="' + y + '" width="46" height="24" rx="4" fill="#2a3440" stroke="#3a4655"/><text x="' + (x + 23) + '" y="' + (y + 15) + '" text-anchor="middle" font-size="9" fill="#e8edf2" font-family="Arial">' + k + '</text>'; });
+    [0, 1, 2, 3].forEach(function (n) { h += '<rect x="' + (34 + n * 75) + '" y="312" width="68" height="22" rx="4" fill="#2a3440" stroke="#3a4655"/>'; });
+    h += '<text x="68" y="327" text-anchor="middle" font-size="10" fill="#e8edf2">◀</text><text x="143" y="327" text-anchor="middle" font-size="10" fill="#e8edf2">▶</text><text x="218" y="327" text-anchor="middle" font-size="10" fill="#e8edf2">▲</text><text x="293" y="327" text-anchor="middle" font-size="10" fill="#e8edf2">▼</text>';
+    var AL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').concat(['SP', '/', 'OVFY', 'CLR']), NU = '123456789.0+-'.split('');
+    for (var r = 0; r < 5; r++) for (var c = 0; c < 9; c++) {
+      var x2 = 34 + c * 34, y2 = 348 + r * 34, isNum = c >= 6, lab = isNum ? NU[r * 3 + (c - 6)] : AL[r * 6 + c];
+      if (!lab) continue;
+      h += '<rect x="' + x2 + '" y="' + y2 + '" width="30" height="28" rx="4" fill="' + (lab === 'CLR' ? '#5a2d2d' : isNum ? '#37424f' : '#2a3440') + '"/><text x="' + (x2 + 15) + '" y="' + (y2 + 18) + '" text-anchor="middle" font-size="' + (lab.length > 1 ? 8 : 12) + '" fill="#e8edf2" font-family="Arial">' + lab + '</text>';
+    }
+    h += mark(180, 100, 1) + mark(20, 100, 2) + mark(340, 100, 3) + mark(300, 217, 4) + mark(14, 262, 5) + mark(14, 322, 6) + mark(14, 400, 7) + mark(14, 498, 8) + mark(346, 400, 9);
+    return svgWrap(360, 540, h, 'Aufbau der MCDU mit nummerierten Bereichen');
+  }
+
+  /* Bildschirm mit Zeilen: rows = [{l,r,ld,rd,lc,rc}] */
+  function screen(title, rows, marks, sp) {
+    var h = '<rect x="0" y="0" width="360" height="330" rx="8" fill="#02070a" stroke="#1a2a36" stroke-width="2"/>';
+    h += '<text x="180" y="24" text-anchor="middle" font-size="18" fill="#f2f6fa" font-family="monospace">' + esc(title) + '</text>';
+    rows.forEach(function (r, i) {
+      var y = 52 + i * 38;
+      h += '<text x="14" y="' + y + '" font-size="10.5" fill="#c8d2dc" font-family="monospace">' + esc(r.l || '') + '</text><text x="346" y="' + y + '" text-anchor="end" font-size="10.5" fill="#c8d2dc" font-family="monospace">' + esc(r.r || '') + '</text>';
+      h += '<text x="14" y="' + (y + 18) + '" font-size="16" fill="' + (COL[r.lc] || COL.g) + '" font-family="monospace">' + esc(r.ld || '') + '</text><text x="346" y="' + (y + 18) + '" text-anchor="end" font-size="16" fill="' + (COL[r.rc] || COL.g) + '" font-family="monospace">' + esc(r.rd || '') + '</text>';
+    });
+    h += '<line x1="6" y1="296" x2="354" y2="296" stroke="#15232d"/><text x="14" y="318" font-size="16" fill="#f2f6fa" font-family="monospace">' + esc(sp || '') + '</text>';
+    (marks || []).forEach(function (m) { h += mark(m[0], m[1], m[2]); });
+    return svgWrap(360, 330, h, 'MCDU-Bildschirm ' + title);
+  }
+
+  function colors() {
+    var it = [['g', 'Grün', 'Daten, die das System kennt und fliegt (aktiv).'], ['c', 'Blau (Cyan)', 'Daten, die du eingegeben hast oder ändern darfst.'], ['a', 'Amber', 'Pflichtfeld fehlt, Achtung, Meldungen.'], ['w', 'Weiß', 'Seitentitel und Beschriftungen der Felder.'], ['y', 'Gelb', 'Vorläufiger Flugplan (TMPY), noch nicht gültig.'], ['m', 'Magenta', 'Ziele und Vorgaben, zum Beispiel Höhenbeschränkungen.']];
+    var h = ''; it.forEach(function (x, i) { var y = 24 + i * 44; h += '<rect x="10" y="' + (y - 14) + '" width="26" height="26" rx="5" fill="' + COL[x[0]] + '"/><text x="50" y="' + (y + 2) + '" font-size="15" font-weight="700" fill="#e8edf2" font-family="Arial">' + x[1] + '</text><text x="50" y="' + (y + 19) + '" font-size="12" fill="#93a1ae" font-family="Arial">' + esc(x[2]) + '</text>'; });
+    return svgWrap(360, 280, h, 'Farben der MCDU');
+  }
+
+  function box(x, y, w, h, t, c, t2) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="8" fill="' + (c || '#1e262f') + '" stroke="#3a4655"/><text x="' + (x + w / 2) + '" y="' + (y + h / 2 + (t2 ? -3 : 5)) + '" text-anchor="middle" font-size="13" fill="#e8edf2" font-family="Arial">' + esc(t) + '</text>' + (t2 ? '<text x="' + (x + w / 2) + '" y="' + (y + h / 2 + 13) + '" text-anchor="middle" font-size="10.5" fill="#93a1ae" font-family="Arial">' + esc(t2) + '</text>' : ''); }
+  function arrow(x1, y1, x2, y2) { return '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#2fb8a6" stroke-width="2.5" marker-end="url(#ah)"/>'; }
+  var DEF = '<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#2fb8a6"/></marker></defs>';
+
+  function scratch() {
+    return svgWrap(360, 190, DEF + box(10, 20, 90, 54, 'Tippen', null, 'Tasten A–Z, 0–9') + arrow(100, 47, 130, 47) + box(130, 20, 100, 54, 'Scratchpad', '#0a131a', 'unterste Zeile') + arrow(230, 47, 260, 47) + box(260, 20, 90, 54, 'Feld', null, 'Taste daneben') +
+      '<text x="14" y="118" font-size="13" fill="#e8edf2" font-family="Arial">Beispiel: EDDF/EDDM tippen, dann die rechte Taste 1</text><text x="14" y="140" font-size="13" fill="#e8edf2" font-family="Arial">neben FROM/TO drücken. Die Eingabe springt ins Feld.</text>' +
+      '<text x="14" y="166" font-size="12" fill="#93a1ae" font-family="Arial">Taste bei leerem Scratchpad: Der Wert des</text><text x="14" y="182" font-size="12" fill="#93a1ae" font-family="Arial">Feldes wird in den Scratchpad kopiert.</text>', 'Eingabe über den Scratchpad');
+  }
+  function tmpy() {
+    return svgWrap(360, 210, DEF + box(10, 18, 100, 56, 'Gültiger Plan', '#12302c', 'grün') + arrow(110, 46, 140, 46) + box(140, 18, 100, 56, 'Änderung', '#3a3318', 'TMPY, gelb') + arrow(240, 46, 270, 46) + box(270, 18, 80, 56, 'Prüfen') +
+      arrow(190, 74, 190, 104) + box(60, 106, 110, 44, 'INSERT*', '#12302c', 'übernehmen') + box(190, 106, 110, 44, '<ERASE', '#3a2218', 'verwerfen') +
+      '<text x="14" y="176" font-size="12" fill="#93a1ae" font-family="Arial">Jede Änderung wird erst gelb.</text><text x="14" y="194" font-size="12" fill="#93a1ae" font-family="Arial">Erst INSERT macht sie gültig.</text>', 'Vorläufiger Flugplan');
+  }
+  function flow() {
+    return svgWrap(360, 330, DEF + box(100, 8, 160, 44, 'Flugplaner', '#12302c', 'SimBrief oder Planer') + arrow(180, 52, 180, 80) + box(40, 82, 130, 48, 'INIT REQUEST', null, 'INIT A') + box(190, 82, 130, 48, 'FUEL / W&B REQ', null, 'INIT B') +
+      arrow(105, 130, 105, 160) + arrow(255, 130, 255, 160) + box(30, 162, 150, 50, 'Strecke, CI, Höhe', '#0a131a', 'und Route als TMPY') + box(190, 162, 140, 50, 'ZFW, Block, Taxi', '#0a131a') +
+      arrow(105, 212, 105, 244) + box(30, 246, 150, 48, 'F-PLN: INSERT*', '#12302c') + box(190, 246, 140, 48, 'PERF, PROG, ND', null, 'prüfen') + arrow(180, 270, 188, 270), 'Vom Plan zur MCDU');
+  }
+  function overview() {
+    return svgWrap(360, 250, DEF + box(10, 10, 110, 46, 'MCDU 1', null, 'Kapitän') + box(240, 10, 110, 46, 'MCDU 2', null, 'F/O') + arrow(65, 56, 120, 96) + arrow(295, 56, 240, 96) + box(100, 98, 160, 52, 'FMGC', '#12302c', 'Flugführungsrechner') + arrow(180, 150, 100, 188) + arrow(180, 150, 260, 188) + box(30, 190, 130, 48, 'ND', null, 'zeigt die Route') + box(200, 190, 130, 48, 'Autopilot', null, 'fliegt sie'), 'MCDU und FMGC');
+  }
+  function phases() {
+    return svgWrap(360, 90, DEF + ['TAKE OFF', 'CLB', 'CRZ', 'DES', 'APPR', 'GO AROUND'].map(function (t, i) { return box(4 + i * 59, 18, 56, 52, t.replace('GO AROUND', 'GO AR.')); }).join('') + [0, 1, 2, 3, 4].map(function (i) { return arrow(60 + i * 59, 44, 63 + i * 59, 44); }).join(''), 'PERF-Phasen');
+  }
+
+  var CH = [
+    { t: 'Wozu die MCDU da ist', pg: null, intro: ['Die MCDU (Multipurpose Control and Display Unit) ist das Eingabegerät für den Bordcomputer des Airbus, den FMGC (Flight Management and Guidance Computer). Dort legst du fest, wohin du fliegst, wie schnell, in welcher Höhe und wie viel Kraftstoff du dafür brauchst.', 'Im A320 gibt es zwei MCDUs, eine für den Kapitän und eine für den Ersten Offizier. Der Computer fliegt nach deinen Eingaben: Das Navigation Display (ND) zeigt die Route, und der Autopilot folgt ihr, wenn du „managed“ fliegst.'], dia: overview, pts: [['MCDU', 'Du tippst, der Rechner nimmt es an oder meldet einen Fehler.'], ['FMGC', 'Berechnet Route, Leistung und Kraftstoff.'], ['ND und Autopilot', 'Zeigen und fliegen, was in der MCDU steht.']] },
+    { t: 'Aufbau des Geräts', pg: 'init', intro: ['Die MCDU hat einen Bildschirm, sechs Tasten links und sechs rechts, eine Reihe Seitentasten, Pfeiltasten und eine Tastatur.'], dia: anatomy, pts: [['Bildschirm', '14 Zeilen: Titel, dann abwechselnd eine kleine Beschriftung und eine große Datenzeile.'], ['Linke Tasten (1L bis 6L)', 'Line Select Keys, kurz LSK. Jede gehört zur Zeile daneben.'], ['Rechte Tasten (1R bis 6R)', 'Dasselbe auf der rechten Seite.'], ['Scratchpad', 'Die unterste Zeile. Hier erscheint alles, was du tippst.'], ['Seitentasten', 'DIR, PROG, PERF, INIT, DATA, F-PLN, RAD NAV, FUEL PRED, SEC F-PLN, ATC COMM, MCDU MENU, AIRPORT.'], ['Pfeiltasten', 'Blättern: Links/Rechts wechselt Seiten, Auf/Ab scrollt eine Liste.'], ['Buchstaben und Zahlen', 'Zum Tippen. Der Schrägstrich trennt Werte, zum Beispiel FROM/TO.'], ['CLR', 'Löscht ein Zeichen. Bei leerem Scratchpad löscht CLR dann das nächste Feld.'], ['BRT und DIM', 'Helligkeit des Bildschirms.']] },
+    { t: 'Eine Seite lesen', pg: 'init', intro: ['Jede Seite sieht gleich aus: oben der Titel, darunter Zeilenpaare. Die kleine Zeile ist die Beschriftung, die große der Wert.'], dia: function () { return screen('INIT', [{ l: 'CO RTE', r: 'FROM/TO', ld: 'NONE', rd: 'EDDF/EDDM', rc: 'c' }, { l: 'FLT NBR', r: 'LAT', ld: 'DLH123', lc: 'c', rd: '5002.0N' }, { l: 'COST INDEX', r: 'LONG', ld: '30', lc: 'c', rd: '00834.2E' }, { l: 'CRZ FL/TEMP', r: 'GND TEMP', ld: 'FL180', lc: 'c', rd: '12°' }, { l: 'TROPO', r: '', ld: '36090', rd: '' }], [[250, 16, 1], [130, 46, 2], [110, 72, 3], [215, 72, 4], [300, 318, 5]], 'EDDF/EDDM_'); }, pts: [['Titel', 'Zeigt, auf welcher Seite du bist. Bei mehreren Seiten steht „1/2“ daneben.'], ['Beschriftung', 'Kleine weiße Schrift: Was ist das Feld?'], ['Wert links', 'Gehört zur linken Taste daneben.'], ['Wert rechts', 'Gehört zur rechten Taste daneben.'], ['Scratchpad', 'Zeigt, was du gerade tippst.']] },
+    { t: 'Farben und Zeichen', pg: 'init', intro: ['Die Farbe sagt dir, was ein Feld bedeutet. Sie hilft vor allem beim Fehlersuchen.', 'Eckige Klammern [ ] sind ein leeres Eingabefeld, Striche ---- bedeuten „noch nichts da“. Ein Stern am Ende, zum Beispiel INSERT* oder SIMBRIEF*, heißt: Die Taste löst eine Aktion aus. Ein Pfeil < oder > springt auf eine andere Seite. Auf echten Geräten sind leere Pflichtfelder amber, in dieser Übung blau dargestellt.'], dia: colors, pts: [] },
+    { t: 'Eingeben mit dem Scratchpad', pg: 'init', intro: ['Du tippst nie direkt ins Feld. Alles geht erst in den Scratchpad, dann drückst du die Taste neben dem Feld. So kannst du erst prüfen und notfalls mit CLR korrigieren.', 'Meldet der Rechner einen Fehler, bleibt dein Text im Scratchpad stehen, und du siehst die Meldung in Amber. Mit CLR löschst du die Meldung.'], dia: scratch, pts: [['NOT ALLOWED', 'Hier darf man das nicht eingeben.'], ['FORMAT ERROR', 'Falsche Schreibweise, zum Beispiel 3 Ziffern statt 4.'], ['ENTRY OUT OF RANGE', 'Zahl liegt außerhalb des erlaubten Bereichs.'], ['NOT IN DATABASE', 'Den Punkt gibt es in der Navigationsdatenbank nicht.']], tryit: 'Tippe EDDF/EDDM und drücke die rechte Taste 1.' },
+    { t: 'INIT A: Strecke und Plan', pg: 'init', intro: ['INIT ist die erste Seite jedes Flugs. Hier gibst du Abflug und Ziel an (FROM/TO), die Flugnummer, den Cost Index und die Reiseflughöhe.', 'Du kannst alles tippen oder den Plan mit INIT REQUEST (rechte Taste 2) aus dem Flugplaner holen. Dann füllt sich die Seite, und die Route liegt als gelber vorläufiger Plan auf F-PLN, den du mit INSERT übernimmst.'], dia: function () { return screen('INIT', [{ l: 'CO RTE', r: 'FROM/TO', ld: 'NONE', rd: 'EDDF/EDDM', rc: 'c' }, { l: 'ALTN/CO RTE', r: 'INIT REQUEST', ld: 'EDDN/---------', lc: 'c', rd: 'SIMBRIEF*' }, { l: 'FLT NBR', r: 'LAT', ld: 'DLH123', lc: 'c', rd: '5002.0N' }, { l: 'COST INDEX', r: 'LONG', ld: '30', lc: 'c', rd: '00834.2E' }, { l: 'CRZ FL/TEMP', r: 'GND TEMP', ld: 'FL180', lc: 'c', rd: '12°' }], [[330, 34, 1], [330, 72, 2], [24, 110, 3]], ''); }, pts: [['FROM/TO', 'Beide Flughäfen mit Schrägstrich, als ICAO-Code.'], ['INIT REQUEST', 'Holt den Plan aus dem Planer (SimBrief). Der Stern heißt: Taste löst etwas aus.'], ['Flugnummer, Cost Index, Höhe', 'Werden mit geholt oder von Hand getippt.']], tryit: 'Öffne INIT und tippe FROM/TO.' },
+    { t: 'F-PLN: die Route', pg: 'fpln', intro: ['Auf F-PLN siehst du die Route als Liste: oben FROM, dann die Wegpunkte, unten das Ziel (DEST). Jede Zeile hat ihren Abstand zum Vorgänger.', 'Änderst du etwas, wird der Plan gelb und heißt TMPY (temporär). Unten erscheinen <ERASE und INSERT*. Erst mit INSERT gilt die Änderung, mit ERASE verwirfst du sie.', 'Einen Wegpunkt einfügen: Name tippen und die Taste neben dem Eintrag drücken, vor dem er stehen soll. Löschen: CLR drücken, dann die Taste neben dem Wegpunkt.'], dia: tmpy, pts: [['Gelb heißt vorläufig', 'Nichts ist gefährlich, solange es gelb ist.'], ['INSERT*', 'Übernimmt den Plan.'], ['<ERASE', 'Verwirft den Plan.']], tryit: 'Öffne F-PLN. Lade vorher im MCDU-Reiter „Flugplan“ einen Plan und hole ihn mit INIT REQUEST.' },
+    { t: 'INIT B und FUEL PRED', pg: 'initb', intro: ['Auf INIT B (Pfeil rechts auf INIT) trägst du Gewicht und Kraftstoff ein: ZFW mit Schwerpunkt, Block und Taxi. Daraus rechnet die MCDU Reserven und EXTRA.', 'Mit FUEL / W&B REQUEST holst du diese Werte wie bei INIT REQUEST aus dem Plan. FUEL PRED zeigt dir dann die erwartete Menge bei der Ankunft.'], dia: function () { return screen('INIT', [{ l: 'TAXI', r: 'ZFWCG/ZFW', ld: '0.2', lc: 'c', rd: '28.0/55.7', rc: 'c' }, { l: 'TRIP / TIME', r: 'BLOCK', ld: '1.3 / 0037', rd: '3.7', rc: 'c' }, { l: 'RTE RSV / %', r: 'ALTN / TIME', ld: '0.1 / 5.0', rd: '1.1 / ----' }, { l: 'FINAL / TIME', r: 'EXTRA / TIME', ld: '1.0 / 0030', rd: '0.2 / ----' }, { l: '', r: 'FUEL / W&B', ld: '', rd: 'REQUEST*' }], [[24, 34, 1], [336, 34, 2], [336, 72, 3], [336, 186, 4]], ''); }, pts: [['TAXI', 'Rollkraftstoff.'], ['ZFWCG/ZFW', 'Gewicht ohne Kraftstoff mit Schwerpunkt.'], ['BLOCK', 'Gesamter Kraftstoff vor dem Start.'], ['REQUEST*', 'Holt die Werte aus dem Plan.']], tryit: 'Öffne INIT B. Mit dem Pfeil rechts wechselst du von INIT zu INIT B.' },
+    { t: 'PERF: die Flugphasen', pg: 'perf', intro: ['PERF (Performance) hat für jede Flugphase eine Seite: Start, Steigflug, Reiseflug, Sinkflug, Anflug und Durchstarten. Du blätterst mit der Taste unten rechts („NEXT PHASE“) weiter.', 'Beim Start gibst du die V-Geschwindigkeiten V1, VR und V2 ein, dazu Übergangshöhe, Flex-Temperatur und Klappenstellung. Beim Anflug Luftdruck (QNH), Temperatur, Wind und Landeklappen. Daraus rechnet die MCDU die Anfluggeschwindigkeit VAPP.'], dia: phases, pts: [['V1 ≤ VR ≤ V2', 'Immer in dieser Reihenfolge, sonst Fehler.'], ['TRANS ALT', 'Übergangshöhe, in Deutschland meist 5000 ft.'], ['QNH, TEMP, WIND', 'Anflugdaten fürs Ziel.']], tryit: 'Öffne PERF und trage V1 138, VR 140, V2 143 ein.' },
+    { t: 'PROG und RAD NAV', pg: 'prog', intro: ['PROG (Progress) zeigt dir im Flug, wo du stehst: Höhe, nächster Punkt, Abstand, Ankunftszeit und erwarteter Restkraftstoff. Es ist die Seite zum Kontrollieren.', 'Auf RAD NAV stellst du Funkfeuer ein: VOR, ILS und ADF mit Frequenz und Kurs. Meist macht das die MCDU automatisch, von Hand brauchst du es zum Beispiel für einen ILS-Anflug.'], dia: null, pts: [['OPT FL und REC MAX', 'Beste und höchste empfohlene Flughöhe.'], ['VOR/ILS/ADF', 'Frequenzen, die du abstimmst.']], tryit: 'Öffne PROG und RAD NAV und sieh dir die Felder an.' },
+    { t: 'Weitere Seiten', pg: 'data', intro: ['DATA: Überwachung der Position und der Systeme, Flugzeugstatus und die nächsten Flughäfen. SEC F-PLN: ein zweiter Plan als Reserve, zum Beispiel für eine andere Landebahn oder einen Ausweichflug. DIR: direkt zu einem Wegpunkt fliegen. MCDU MENU: zwischen den Systemen wechseln. AIRPORT: Flughafenseite.'], dia: null, pts: [['SEC F-PLN', 'Mit COPY ACTIVE kopierst du den aktiven Plan hinein und bearbeitest ihn gefahrlos.'], ['DIR TO', 'Überspringt alle Punkte vor dem gewählten Wegpunkt.']], tryit: 'Öffne SEC F-PLN und drücke COPY ACTIVE.' },
+    { t: 'Ablauf im Cockpit', pg: 'init', intro: ['Vor dem Start gehst du die MCDU immer in derselben Reihenfolge durch. Ein Merkwort dafür ist DIFSRIP: DATA prüfen, INIT A, F-PLN, SEC F-PLN, RAD NAV, INIT B, PERF.', 'Praktisch: Erst Plan holen (INIT REQUEST, INSERT), Route mit dem Papierplan vergleichen, dann Gewichte (INIT B), danach PERF für den Start. Zum Schluss prüfst du auf dem ND, ob die Linie stimmt.'], dia: null, pts: [['D', 'Data: Position und Datenbank prüfen'], ['I', 'Init A'], ['F', 'F-PLN'], ['S', 'SEC F-PLN'], ['R', 'Rad Nav'], ['I', 'Init B'], ['P', 'Perf']], tryit: 'Wechsle zur MCDU und übe die Reihenfolge im geführten Modus.' },
+    { t: 'Vom Flugplan zur MCDU', pg: 'init', intro: ['So läuft es im Sim: Du erstellst den Plan bei SimBrief (hier: Reiter „Planer“). Im Flugzeug stellst du deinen SimBrief-Namen ein. In der MCDU drückst du INIT REQUEST und danach F-PLN und INSERT. Auf INIT B holst du mit FUEL / W&B REQUEST Gewichte und Kraftstoff.', 'Wichtig: Der Plan landet erst als gelber vorläufiger Plan in der MCDU. Du musst ihn bestätigen. Danach vergleichst du ihn mit dem Plan, bevor du fliegst.'], dia: flow, pts: [['Plan erstellen', 'Im Planer erzeugen und speichern.'], ['INIT REQUEST', 'Auf INIT die rechte Taste neben INIT REQUEST drücken.'], ['INSERT', 'Auf F-PLN den gelben Plan übernehmen.'], ['FUEL / W&B REQUEST', 'Auf INIT B Gewichte und Kraftstoff holen.']], tryit: 'Öffne den Planer und erstelle einen Plan.', link: 'plan.html' }
+  ];
+
+  var root, cur = null, seen = {};
+  try { seen = JSON.parse(localStorage.getItem('vpa.lern') || '{}'); } catch (e) { }
+  function mark2() { try { localStorage.setItem('vpa.lern', JSON.stringify(seen)); } catch (e) { } }
+  function list() {
+    return '<div class="hero2"><h2 class="h3d">MCDU Schritt für Schritt</h2><p class="small">Dreizehn kurze Kapitel von „Wozu?“ bis zum Ablauf im Cockpit, mit Zeichnungen. Zu jedem Kapitel kannst du direkt in der MCDU üben.</p></div><div class="tasklist">' +
+      CH.map(function (c, i) { return '<button data-c="' + i + '" type="button"><b>' + (i + 1) + ' · ' + esc(c.t) + '</b><span>' + (seen[i] ? '✓ gelesen' : 'noch nicht gelesen') + '</span></button>'; }).join('') + '</div>';
+  }
+  function chapter(i) {
+    var c = CH[i], n = c.pts.length, h = '<div class="card"><div class="eyebrow">KAPITEL ' + (i + 1) + ' VON ' + CH.length + '</div><h3 class="h3d">' + esc(c.t) + '</h3>' + c.intro.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('') + '</div>';
+    if (c.dia) h += '<div class="card diacard">' + c.dia() + '</div>';
+    if (n) h += '<div class="card"><ol class="pts">' + c.pts.map(function (p, k) { return '<li><b>' + esc(p[0]) + '</b><span>' + esc(p[1]) + '</span></li>'; }).join('') + '</ol></div>';
+    if (c.tryit) h += '<div class="card"><div class="eyebrow">PROBIER ES</div><p>' + esc(c.tryit) + '</p><div class="btnrow"><button class="btn pri" data-go="' + (c.pg || 'init') + '" type="button">In der MCDU öffnen</button>' + (c.link ? '<a class="btn" href="' + c.link + '">Zum Planer</a>' : '') + '</div></div>';
+    h += '<div class="btnrow"><button class="btn" id="c-list" type="button">Alle Kapitel</button><button class="btn" id="c-prev" type="button"' + (i ? '' : ' disabled') + '>‹ Zurück</button><button class="btn pri" id="c-next" type="button">' + (i < CH.length - 1 ? 'Weiter ›' : 'Fertig') + '</button></div>';
+    return h;
+  }
+  function draw() { var y = root.parentElement; root.innerHTML = cur === null ? list() : chapter(cur); y.scrollTop = 0; }
+  function mount(r) {
+    root = r; draw();
+    root.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.c) { cur = +b.dataset.c; draw(); return; }
+      if (b.dataset.go) { try { sessionStorage.setItem('vpa.go', b.dataset.go); } catch (er) { } location.href = 'mcdu.html'; return; }
+      if (b.id === 'c-list') { cur = null; draw(); return; }
+      if (b.id === 'c-prev') { cur = Math.max(0, cur - 1); draw(); return; }
+      if (b.id === 'c-next') { seen[cur] = 1; mark2(); cur = cur < CH.length - 1 ? cur + 1 : null; draw(); }
+    });
+  }
+  window.VpAAnleitung = { mount: mount };
+})();
