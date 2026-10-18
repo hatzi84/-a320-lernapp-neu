@@ -84,3 +84,19 @@ html[data-update] .tabbar .upd::after { content: ""; position: absolute; top: 10
 .apptop .swl { display: inline-flex; margin-left: auto; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
 .apptop .swl a { padding: 8px 14px; color: var(--mute); text-decoration: none; font-size: 14px; }
 .apptop .swl a.on { background: var(--blue); color: #04201c; font-weight: 500; }
+
+/* OFP als weißes Blatt (SimBrief-Stil) */
+.ofp { background: #fff; color: #111; border-radius: 6px; padding: 14px 12px 16px; font-family: "Roboto Mono", "DejaVu Sans Mono", Consolas, monospace; font-size: 12px; line-height: 1.45; box-shadow: 0 6px 24px rgba(0,0,0,.35); margin-bottom: 14px; }
+.ofp-h { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; border-bottom: 2px solid #111; padding-bottom: 6px; align-items: baseline; }
+.ofp-h b { font-size: 18px; letter-spacing: .04em; } .ofp-h span { font-weight: 600; }
+.ofp-note { color: #666; font-size: 10px; letter-spacing: .08em; padding: 4px 0 8px; }
+.ofp-t { background: #111; color: #fff; font-weight: 700; letter-spacing: .12em; font-size: 11px; padding: 2px 6px; margin: 12px 0 4px; }
+.ofp-g2 { display: grid; grid-template-columns: 1fr; gap: 0 18px; } @media (min-width: 700px) { .ofp-g2 { grid-template-columns: 1fr 1fr; } }
+.ofp-tb { width: 100%; border-collapse: collapse; } .ofp-tb th { text-align: left; font-weight: 700; color: #444; border-bottom: 1px solid #999; padding: 2px 6px 2px 0; font-size: 11px; }
+.ofp-tb td { padding: 2px 6px 2px 0; border-bottom: 1px dotted #ccc; white-space: nowrap; } .ofp-tb .rt, .ofp-tb th.rt { text-align: right; }
+.ofp-tb tr.tot td { font-weight: 700; border-top: 2px solid #111; border-bottom: 0; } .ofp-tb tr.sep td { border-top: 1px solid #111; }
+.ofp-tb .over { color: #c00; font-weight: 700; }
+.ofp-rt { word-break: break-word; font-weight: 600; }
+.ofp-w { color: #b00; font-weight: 600; margin: 2px 0; }
+.ofp-nav td, .ofp-nav th { padding-right: 10px; } .ofp-nav tr.ofpm td { background: #fff4d6; font-weight: 700; }
+.ofp-s { color: #555; font-size: 10.5px; margin-top: 6px; }

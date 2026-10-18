@@ -42,18 +42,39 @@
       '<div class="btnrow"><button class="btn pri big" id="f-go" type="button">Flugplan erzeugen</button></div>';
   }
 
+  /* Plan (OFP) als weißes Blatt im Stil des SimBrief-Flugplans. Alle Werte sind Übungsdaten aus dem vereinfachten Rechenmodell. */
   function ofpH() {
     if (!plan) return '<div class="card"><p>Noch kein Plan. Fülle die Eingabe aus und drücke „Flugplan erzeugen“.</p></div>';
     if (!plan.ok) return '<div class="card"><p class="err">' + esc(plan.error) + '</p></div>';
-    var p = plan, r = function (a, b, c) { return '<tr><td>' + a + '</td><td class="rt">' + b + '</td><td class="rt">' + (c || '') + '</td></tr>'; }, kg = function (n) { return n.toLocaleString('de-DE') + ' kg'; };
-    var h = '<div class="card"><div class="eyebrow">OFP · ' + esc(p.flt || '—') + '</div><h3 class="h3d">' + p.from + ' → ' + p.to + '</h3><div class="grid g2" style="gap:8px;margin:10px 0">' +
-      '<div class="mi"><span>Distanz</span><b>' + p.dist + ' NM</b></div><div class="mi"><span>Flugzeit</span><b>' + p.ete + ' h</b></div><div class="mi"><span>Abflug · Ankunft (UTC)</span><b>' + p.std + ' · ' + p.sta + '</b></div><div class="mi"><span>Höhe · Cost Index</span><b>' + p.crz + ' · ' + p.ci + '</b></div></div>' +
-      '<p class="small"><b>Route:</b> ' + esc(p.routeStr) + '</p>' + p.warn.map(function (w) { return '<p class="small warnl">⚠ ' + esc(w) + '</p>'; }).join('') + '</div>' +
-      '<div class="card"><div class="eyebrow">KRAFTSTOFF</div><table class="compare"><tr><th>Posten</th><th class="rt">kg</th><th class="rt">Hinweis</th></tr>' +
-      r('TAXI', p.taxiKg, 'Rollen') + r('TRIP', p.tripKg, 'der Flug') + r('CONT', p.contKg, p.contKg === 150 ? 'Minimum' : '5 % vom Trip') + r('ALTN', p.altnKg, p.altn ? 'nach ' + p.altn : '—') + r('FINAL RES', p.finKg, '30 min Warteschleife') + r('EXTRA', p.extraKg, 'freiwillig') + '<tr class="tot"><td>BLOCK</td><td class="rt">' + p.blockKg + '</td><td></td></tr></table></div>' +
-      '<div class="card"><div class="eyebrow">GEWICHTE</div><table class="compare"><tr><th>Posten</th><th class="rt">Wert</th><th class="rt">Maximum</th></tr>' + r('Leergewicht (OEW)', kg(p.oew)) + r('Zuladung', kg(p.payload), p.pax + ' Pax, ' + p.cargo + ' kg Fracht') + r('ZFW', kg(p.zfwKg), kg(P.AC.mzfw)) + r('TOW (Start)', kg(p.towKg), kg(P.AC.mtow)) + r('LW (Landung)', kg(p.lwKg), kg(P.AC.mlw)) + '</table></div>' +
-      '<div class="card"><div class="eyebrow">NAVLOG</div><div class="tscroll"><table class="compare"><tr><th>Punkt</th><th class="rt">Leg</th><th class="rt">Summe</th><th class="rt">FL</th><th class="rt">ETE</th><th class="rt">UTC</th><th class="rt">Rest kg</th></tr>' +
-      p.navlog.map(function (n) { return '<tr' + (n.mark ? ' class="mk2"' : '') + '><td>' + n.id + '</td><td class="rt">' + (n.d || '') + '</td><td class="rt">' + n.cum + '</td><td class="rt">' + (n.fl ? 'FL' + n.fl : '') + '</td><td class="rt">' + n.ete + '</td><td class="rt">' + n.eta + '</td><td class="rt">' + Math.round(n.fuel) + '</td></tr>'; }).join('') + '</table></div><p class="small">TOC = Beginn des Reiseflugs, TOD = Beginn des Sinkflugs (berechnet, vereinfachtes Modell).</p></div>' +
+    var p = plan, AC = P.AC, flow = p.tripKg / Math.max(1, p.eteMin) * 60;
+    var tm = function (kg) { return P.hm(kg / flow * 60); };
+    var MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'], d = new Date();
+    var date = ('0' + d.getUTCDate()).slice(-2) + MON[d.getUTCMonth()] + String(d.getUTCFullYear()).slice(2);
+    var row = function (a, b, c, d2, cls) { return '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td>' + a + '</td><td class="rt">' + b + '</td><td class="rt">' + (c == null ? '' : c) + '</td><td class="rt">' + (d2 == null ? '' : d2) + '</td></tr>'; };
+    var minTo = p.tripKg + p.contKg + p.altnKg + p.finKg, dAlt = p.altn ? Math.round(N.dist(p.to, p.altn)) : 0;
+    var over = function (v, m) { return v > m ? ' over' : ''; };
+    var h = '<div class="ofp">' +
+      '<div class="ofp-h"><b>' + esc(p.flt || 'FLUGPLAN') + '</b><span>' + p.from + '/' + p.to + ' &nbsp; ' + date + '</span><span>' + esc(p.ac || AC.name) + '</span></div>' +
+      '<div class="ofp-note">OPERATIONAL FLIGHT PLAN · NUR ZUM ÜBEN · ' + esc(F.user ? 'PILOT ' + F.user.toUpperCase() : 'PILOT') + '</div>' +
+      '<div class="ofp-g2"><div><div class="ofp-t">FLUG</div><table class="ofp-tb">' + row('ABFLUG', p.from, 'STD', p.std + 'Z') + row('ZIEL', p.to, 'STA', p.sta + 'Z') + row('ALTERNATE', p.altn || '—', 'ETE', p.ete) + row('DISTANZ', p.dist + ' NM', 'REISEFLUG', p.crz) + row('COST INDEX', p.ci, 'PAX', p.pax) + '</table></div>' +
+      '<div><div class="ofp-t">KRAFTSTOFF</div><table class="ofp-tb"><tr><th></th><th class="rt">KG</th><th class="rt">ZEIT</th><th></th></tr>' +
+      row('TAXI', p.taxiKg, '0:12') + row('TRIP', p.tripKg, p.ete) + row('CONT', p.contKg, tm(p.contKg)) + row('ALTN', p.altnKg, p.altn ? tm(p.altnKg) : '', p.altn || '') + row('FINAL RES', p.finKg, tm(p.finKg)) + (p.extraKg ? row('EXTRA', p.extraKg, tm(p.extraKg)) : '') +
+      row('MIN T/O', minTo, tm(minTo), '', 'sep') + row('BLOCK (RAMP)', p.blockKg, tm(p.blockKg), '', 'tot') + '</table></div></div>' +
+      '<div class="ofp-t">GEWICHTE</div><table class="ofp-tb"><tr><th></th><th class="rt">KG</th><th class="rt">MAX</th><th></th></tr>' +
+      row('OEW (LEER)', p.oew, '', '') + row('ZUL. · ' + p.pax + ' PAX + ' + p.cargo + ' KG', p.payload, '', '') + row('EZFW', '<span class="' + over(p.zfwKg, AC.mzfw) + '">' + p.zfwKg + '</span>', AC.mzfw) + row('ETOW', '<span class="' + over(p.towKg, AC.mtow) + '">' + p.towKg + '</span>', AC.mtow) + row('ELDW', '<span class="' + over(p.lwKg, AC.mlw) + '">' + p.lwKg + '</span>', AC.mlw) + '</table>' +
+      '<div class="ofp-t">ROUTE</div><div class="ofp-rt">' + esc(p.routeStr) + '</div>';
+    if (p.warn.length) h += '<div class="ofp-t">HINWEISE</div>' + p.warn.map(function (w) { return '<div class="ofp-w">* ' + esc(w) + '</div>'; }).join('');
+    h += '<div class="ofp-t">NAVLOG</div><div class="tscroll"><table class="ofp-tb ofp-nav"><tr><th>IDENT</th><th class="rt">TRK</th><th class="rt">ALT</th><th class="rt">DIS</th><th class="rt">REST</th><th class="rt">ETE</th><th class="rt">ETA</th><th class="rt">FUEL</th></tr>';
+    var prev = null;
+    p.navlog.forEach(function (n) {
+      var trk = '';
+      if (!n.mark && prev && N.DB[prev] && N.DB[n.id]) { var b = N.bearing(prev, n.id); if (b != null) trk = ('00' + Math.round(b)).slice(-3); }
+      h += '<tr' + (n.mark ? ' class="ofpm"' : '') + '><td>' + esc(n.id) + '</td><td class="rt">' + trk + '</td><td class="rt">' + (n.fl ? 'FL' + n.fl : '') + '</td><td class="rt">' + (n.d || '') + '</td><td class="rt">' + Math.max(0, p.dist - n.cum) + '</td><td class="rt">' + n.ete + '</td><td class="rt">' + n.eta + '</td><td class="rt">' + Math.round(n.fuel) + '</td></tr>';
+      if (!n.mark) prev = n.id;
+    });
+    h += '</table></div><div class="ofp-s">TRK = Kurs rechtweisend. DIS = Strecke zum Punkt, REST = bis zum Ziel (NM). ETA in UTC. FUEL = Rest-Trip-Kraftstoff in kg. TOC = Beginn Reiseflug, TOD = Beginn Sinkflug.</div>';
+    if (p.altn) h += '<div class="ofp-t">ALTERNATE ' + p.altn + '</div><table class="ofp-tb">' + row('ZIEL → ' + p.altn, dAlt + ' NM', '', '') + row('KRAFTSTOFF', p.altnKg + ' KG', '≈ ' + tm(p.altnKg), '') + '</table>';
+    h += '<div class="ofp-s">Wind, Wetter, Luftstraßen, Frequenzen, SID und STAR gibt es in dieser Übungs-Version nicht. Echte Pläne holst du dir bei SimBrief. Der Aufbau hier zeigt, wo du später was findest.</div></div>' +
       '<div class="btnrow"><button class="btn pri big" id="o-save" type="button">' + (saved ? 'Gespeichert ✓' : 'Speichern und für die MCDU bereitstellen') + '</button><a class="btn big" href="mcdu.html">Zur MCDU</a></div>';
     return h;
   }
