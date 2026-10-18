@@ -13,7 +13,6 @@ window.VpAAirbus = (function () {
 
   var OVERHEAD = {
     left: [
-      P('', [[pb('PA', 'PA', { m: 'on', lo: 'ON', dead: 1 }), pb('DOORVID', 'COCKPIT DOOR VIDEO', { m: 'on', dead: 1 })]]),
       P('ADIRS', [[kn('IR1', 'IR 1', ['OFF', 'NAV', 'ATT'], 0), kn('IR3', 'IR 3', ['OFF', 'NAV', 'ATT'], 0), kn('IR2', 'IR 2', ['OFF', 'NAV', 'ATT'], 0)], [pb('ADR1', 'ADR 1', { f: 1 }), pb('ADR3', 'ADR 3', { f: 1 }), pb('ADR2', 'ADR 2', { f: 1 })], [tx('ON BAT')]]),
       P('FLT CTL', [[pb('ELAC1', 'ELAC 1', { f: 1 }), pb('SEC1', 'SEC 1', { f: 1 }), pb('FAC1', 'FAC 1', { f: 1 })]]),
       P('EVAC', [[pb('EVACCMD', 'COMMAND', { m: 'on', lo: 'ON' }), pb('HORN', 'HORN SHUT OFF', { r: 1, m: 'on' }), tg('CAPT', 'CAPT & PURS', ['CAPT & PURS', 'CAPT', 'PURS'], 1)]]),
@@ -22,6 +21,7 @@ window.VpAAirbus = (function () {
       P('RCDR', [[pb('GNDCTL', 'GND CTL', { m: 'on', lo: 'ON' }), pb('CVRERASE', 'CVR ERASE', { r: 1 }), pb('CVRTEST', 'CVR TEST', { r: 1 })]]),
       P('OXYGEN', [[pb('MASKMAN', 'MASK MAN ON', { g: 'red', m: 'on', lo: 'ON' }), pb('PAXOXY', 'PASSENGER', { m: 'on', lo: 'ON', top: 'SYS ON' }), pb('CREWOXY', 'CREW SUPPLY', { m: 'off', def: 1 })]]),
       P('CALLS', [[pb('CALLMECH', 'MECH', { r: 1 }), pb('CALLALL', 'ALL', { r: 1 }), pb('CALLFWD', 'FWD', { r: 1 }), pb('CALLAFT', 'AFT', { r: 1 }), pb('CALLEMER', 'EMER', { m: 'on', lo: 'EMER' })]]),
+      P('', [[pb('PA', 'PA', { m: 'on', lo: 'ON', dead: 1 }), pb('DOORVID', 'COCKPIT DOOR VIDEO', { m: 'on', dead: 1 })]]),
       P('RAIN RPLNT · WIPER', [[pb('RPLNTL', 'RAIN RPLNT', { r: 1 }), kn('WIPERL', 'WIPER', ['OFF', 'SLOW', 'FAST'], 0)]])
     ],
     center: [
@@ -32,8 +32,8 @@ window.VpAAirbus = (function () {
       P('AIR COND', [[kn('PACKFLOW', 'PACK FLOW', ['LO', 'NORM', 'HI'], 1), kn('TCOCK', 'COCKPIT', ['COLD', '', '', 'HOT'], 2), kn('TFWD', 'FWD CABIN', ['COLD', '', '', 'HOT'], 2), kn('TAFT', 'AFT CABIN', ['COLD', '', '', 'HOT'], 2), pb('HOTAIR', 'HOT AIR', { f: 1 })], [pb('PACK1', 'PACK 1', { f: 1 }), pb('BLEED1', 'ENG 1 BLEED', { f: 1 }), pb('RAMAIR', 'RAM AIR', { m: 'on', lo: 'ON' }), pb('APUBLEED', 'APU BLEED', { m: 'on', lo: 'ON', f: 1 }), kn('XBLEED', 'X BLEED', ['SHUT', 'AUTO', 'OPEN'], 1), pb('BLEED2', 'ENG 2 BLEED', { f: 1 }), pb('PACK2', 'PACK 2', { f: 1 })]], { cls: 'wide' }),
       P('ANTI ICE · PROBE/WINDOW HEAT · CABIN PRESS', [[pb('AIWING', 'WING', { m: 'on', f: 1, lo: 'ON' }), pb('AIENG1', 'ENG 1', { m: 'on', f: 1, lo: 'ON' }), pb('AIENG2', 'ENG 2', { m: 'on', f: 1, lo: 'ON' }), pb('PROBE', 'PROBE/WINDOW HEAT', { a: 'AUTO', m: 'on', lo: 'ON' }), tg('VSCTL', 'MAN V/S CTL', ['UP', '', 'DN'], 1), pb('CPMODE', 'MODE SEL', { f: 'MAN', def: 1 }), kn('LDGELEV', 'LDG ELEV', ['-2', '0', '2', '4', '6', '8', 'AUTO'], 6), pb('DITCH', 'DITCHING', { g: 'black', m: 'on', lo: 'ON' })]], { cls: 'wide' }),
       P('EXT LT', [[tg('STROBE', 'STROBE', ['ON', 'AUTO', 'OFF'], 2), tg('BEACON', 'BEACON', ['ON', 'OFF'], 1), tg('WINGLT', 'WING', ['ON', 'OFF'], 1), tg('NAVLOGO', 'NAV & LOGO', ['1', '2', 'OFF'], 2), tg('RWYTO', 'RWY TURN OFF', ['ON', 'OFF'], 1), tg('LANDL', 'LAND L', ['ON', 'OFF', 'RETRACT'], 2), tg('LANDR', 'LAND R', ['ON', 'OFF', 'RETRACT'], 2), tg('NOSE', 'NOSE', ['T.O', 'TAXI', 'OFF'], 2)]], { cls: 'wide' }),
-      P('APU', [[pb('APUM', 'MASTER SW', { m: 'on', f: 1, lo: 'ON' }), pb('APUS', 'START', { m: 'on', k: 'apustart' })]]),
-      P('INT LT · SIGNS', [[kn('OVHDLT', 'OVHD INTEG LT', ['OFF', '', '', 'BRT'], 0), tg('ICEIND', 'ICE IND & STBY COMPASS', ['BRT', 'DIM', 'OFF'], 2), tg('DOME', 'DOME', ['BRT', 'DIM', 'OFF'], 2), tg('ANNLT', 'ANN LT', ['TEST', 'BRT', 'DIM'], 1), tg('SEATBELT', 'SEAT BELTS', ['ON', 'OFF'], 1), tg('NOSMOKE', 'NO SMOKING', ['ON', 'AUTO', 'OFF'], 1), tg('EXITLT', 'EMER EXIT LT', ['ON', 'ARM', 'OFF'], 1)]], { cls: 'wide' })
+      P('APU', [[pb('APUM', 'MASTER SW', { m: 'on', f: 1, lo: 'ON' }), pb('APUS', 'START', { m: 'on', k: 'apustart' })]], { cls: 'half' }),
+      P('INT LT · SIGNS', [[kn('OVHDLT', 'OVHD INTEG LT', ['OFF', '', '', 'BRT'], 0), tg('ICEIND', 'ICE IND & STBY COMPASS', ['BRT', 'DIM', 'OFF'], 2), tg('DOME', 'DOME', ['BRT', 'DIM', 'OFF'], 2), tg('ANNLT', 'ANN LT', ['TEST', 'BRT', 'DIM'], 1), tg('SEATBELT', 'SEAT BELTS', ['ON', 'OFF'], 1), tg('NOSMOKE', 'NO SMOKING', ['ON', 'AUTO', 'OFF'], 1), tg('EXITLT', 'EMER EXIT LT', ['ON', 'ARM', 'OFF'], 1)]], { cls: 'wide half2' })
     ],
     right: [
       P('FLT CTL', [[pb('ELAC2', 'ELAC 2', { f: 1 }), pb('SEC2', 'SEC 2', { f: 1 }), pb('SEC3', 'SEC 3', { f: 1 }), pb('FAC2', 'FAC 2', { f: 1 })]]),
@@ -109,10 +109,45 @@ window.VpAAirbus = (function () {
   function col(a) { return '<div class="abcol">' + a.map(panelH).join('') + '</div>'; }
 
   function ovhd() {
-    return '<div class="abbar"><span class="small">Zustand (Beispiel):</span><button class="btn" data-a="preset" data-p="cold">Kalt und dunkel</button><button class="btn" data-a="preset" data-p="ready">Vor dem Anlassen</button><span class="small" style="margin-left:auto">' + (power() ? 'Strom an' : 'ohne Strom: alle Anzeigen dunkel') + '</span></div>' +
-      '<div class="abovh">' + col(OVERHEAD.left) + col(OVERHEAD.center) + col(OVERHEAD.right) + '</div>' +
-      '<p class="abnote">Nachbau nach dem echten A320-Overhead: Drucktaster mit Anzeigen oben (FAULT) und unten (OFF, ON, AVAIL), rote Schutzklappen (tippen zum Öffnen, noch einmal zum Schalten), Drehschalter, Kippschalter. Ohne Strom bleiben alle Anzeigen dunkel.</p>';
+    return '<div class="abbar"><button class="btn" data-a="preset" data-p="cold">Kalt und dunkel</button><button class="btn" data-a="preset" data-p="ready">Vor dem Anlassen</button>' +
+      '<span class="ovz"><button class="btn" data-v="out" aria-label="Verkleinern">−</button><button class="btn" data-v="in" aria-label="Vergrößern">+</button><button class="btn" data-v="fit">Ganz</button><button class="btn" data-v="l">Links</button><button class="btn" data-v="c">Mitte</button><button class="btn" data-v="r">Rechts</button></span></div>' +
+      '<div class="ovview" id="ovview"><div class="ovstage" id="ovstage"><div class="abovh fix">' + col(OVERHEAD.left) + '<div class="abcol">' + OVERHEAD.center.filter(function (p) { return !/half/.test(p.cls || ''); }).map(panelH).join('') + '<div class="ovhalf">' + OVERHEAD.center.filter(function (p) { return /half/.test(p.cls || ''); }).map(panelH).join('') + '</div></div>' + col(OVERHEAD.right) + '</div></div></div>' +
+      '<p class="abnote">Mit einem Finger verschieben, mit zwei Fingern zoomen (am PC: Mausrad). Anordnung nach dem echten A320-Overhead, Zustände sind Beispiele.</p>';
   }
+
+  /* ---------- Verschieben und Zoomen des Overheads ---------- */
+  var V = { x: 0, y: 0, s: 0, moved: false };
+  function stage() { return root.querySelector('#ovstage'); }
+  function view() { return root.querySelector('#ovview'); }
+  function sizeView() { var vw = view(); if (!vw) return; var bar = document.querySelector('.tabbar'), top = vw.getBoundingClientRect().top; vw.style.height = Math.max(260, window.innerHeight - top - (bar ? bar.offsetHeight : 0) - 46) + 'px'; }
+  function clampV() { var vw = view(), st = stage(); if (!vw || !st) return; var W = st.offsetWidth * V.s, H = st.offsetHeight * V.s, w = vw.clientWidth, h = vw.clientHeight;
+    V.x = W < w ? (w - W) / 2 : Math.min(0, Math.max(w - W, V.x)); V.y = H < h ? (h - H) / 2 : Math.min(0, Math.max(h - H, V.y)); }
+  function applyV() { var st = stage(); if (!st) return; clampV(); st.style.transform = 'translate(' + V.x + 'px,' + V.y + 'px) scale(' + V.s + ')'; }
+  function fitS() { var vw = view(), st = stage(); return Math.min(vw.clientWidth / st.offsetWidth, vw.clientHeight / st.offsetHeight); }
+  function zoomAt(f, cx, cy) { var s2 = Math.max(Math.min(fitS(), 0.3), Math.min(2.2, V.s * f)); V.x = cx - (cx - V.x) * s2 / V.s; V.y = cy - (cy - V.y) * s2 / V.s; V.s = s2; applyV(); }
+  function goCol(i) { var st = stage(), c = st.querySelectorAll('.abovh.fix > .abcol')[i], vw = view(); V.s = Math.min(1, vw.clientWidth / (c.offsetWidth + 40)); V.x = -(c.offsetLeft - 20) * V.s; V.y = 0; applyV(); }
+  function setupView() {
+    var vw = view(); if (!vw) return; sizeView();
+    if (!V.s) { V.s = Math.max(fitS(), Math.min(0.6, vw.clientWidth / 600)); V.x = 0; V.y = 0; }
+    applyV();
+    var pts = {}, start = null;
+    vw.addEventListener('pointerdown', function (e) { pts[e.pointerId] = { x: e.clientX, y: e.clientY }; V.moved = false; start = { x: V.x, y: V.y, s: V.s, pts: JSON.parse(JSON.stringify(pts)) }; });
+    vw.addEventListener('pointermove', function (e) {
+      if (!pts[e.pointerId]) return; pts[e.pointerId] = { x: e.clientX, y: e.clientY };
+      var ids = Object.keys(pts), r = vw.getBoundingClientRect();
+      if (ids.length === 1 && start.pts[ids[0]]) { var dx = e.clientX - start.pts[ids[0]].x, dy = e.clientY - start.pts[ids[0]].y; if (!V.moved && Math.abs(dx) + Math.abs(dy) < 8) return; if (!V.moved) { V.moved = true; try { vw.setPointerCapture(e.pointerId); } catch (er) { } } V.x = start.x + dx; V.y = start.y + dy; applyV(); }
+      else if (ids.length >= 2) { var a = pts[ids[0]], b = pts[ids[1]], a0 = start.pts[ids[0]], b0 = start.pts[ids[1]]; if (!a0 || !b0) { start = { x: V.x, y: V.y, s: V.s, pts: JSON.parse(JSON.stringify(pts)) }; return; }
+        V.moved = true; var d0 = Math.hypot(a0.x - b0.x, a0.y - b0.y), d1 = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2 - r.left, my = (a.y + b.y) / 2 - r.top, m0x = (a0.x + b0.x) / 2 - r.left, m0y = (a0.y + b0.y) / 2 - r.top;
+        var s2 = Math.max(Math.min(fitS(), 0.3), Math.min(2.2, start.s * d1 / d0)); V.x = mx - (m0x - start.x) * s2 / start.s; V.y = my - (m0y - start.y) * s2 / start.s; V.s = s2; applyV(); }
+    });
+    var up = function (e) { delete pts[e.pointerId]; start = { x: V.x, y: V.y, s: V.s, pts: JSON.parse(JSON.stringify(pts)) }; };
+    vw.addEventListener('pointerup', up); vw.addEventListener('pointercancel', up);
+    vw.addEventListener('click', function (e) { if (V.moved) { e.stopPropagation(); e.preventDefault(); V.moved = false; } }, true);
+    vw.addEventListener('wheel', function (e) { e.preventDefault(); var r = vw.getBoundingClientRect(); zoomAt(e.deltaY < 0 ? 1.12 : 1 / 1.12, e.clientX - r.left, e.clientY - r.top); }, { passive: false });
+  }
+  function onView(t) { var vw = view(); if (!vw) return; var w = vw.clientWidth / 2, h = vw.clientHeight / 2;
+    if (t === 'in') zoomAt(1.25, w, h); else if (t === 'out') zoomAt(0.8, w, h); else if (t === 'fit') { V.s = fitS(); V.x = 0; V.y = 0; applyV(); } else goCol(t === 'l' ? 0 : t === 'c' ? 1 : 2); }
+  window.addEventListener('resize', function () { if (tab === 'ovhd' && view()) { sizeView(); applyV(); } });
 
   /* ---------- Eingaben ---------- */
   var REG = {};
@@ -123,6 +158,7 @@ window.VpAAirbus = (function () {
     return res;
   }
   function onClick(e) {
+    var vb = e.target.closest('[data-v]'); if (vb) { onView(vb.dataset.v); return; }
     var a = e.target.closest('[data-a]'); if (!a) return;
     var t = a.dataset.a, id = a.dataset.id;
     if (t === 'preset') { apply(a.dataset.p); draw(); return; }
@@ -136,7 +172,7 @@ window.VpAAirbus = (function () {
   }
 
   function api() { return { S: S, N: N, ECAM: ECAM, item: itemH, reg: function (c) { REG[c.id] = c; return c; }, pb: pb, kn: kn, tg: tg, val: val, power: power, redraw: draw, setEcam: function (v) { ECAM = v; } }; }
-  function draw() { var y = root.scrollTop, parts = VpAAirbus2; root.innerHTML = tab === 'ovhd' ? ovhd() : parts.render(tab, api()); root.scrollTop = y; if (parts.after) parts.after(tab, root, api()); }
+  function draw() { var y = root.scrollTop, parts = VpAAirbus2; root.innerHTML = tab === 'ovhd' ? ovhd() : parts.render(tab, api()); root.scrollTop = y; if (parts.after) parts.after(tab, root, api()); if (tab === 'ovhd') setupView(); }
 
   /* ---------- Schnittstelle ---------- */
   function mount(r, which) {

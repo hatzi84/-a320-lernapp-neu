@@ -100,3 +100,16 @@ html[data-update] .tabbar .upd::after { content: ""; position: absolute; top: 10
 .ofp-w { color: #b00; font-weight: 600; margin: 2px 0; }
 .ofp-nav td, .ofp-nav th { padding-right: 10px; } .ofp-nav tr.ofpm td { background: #fff4d6; font-weight: 700; }
 .ofp-s { color: #555; font-size: 10.5px; margin-top: 6px; }
+
+/* Overhead als großes Bild: verschieben und zoomen */
+.ovz { display: inline-flex; gap: 6px; margin-left: auto; flex-wrap: wrap; }
+.ovz .btn { min-width: 40px; }
+.ovview { position: relative; overflow: hidden; touch-action: none; background: #26323f; border-radius: 10px; border: 1px solid #1a222b; user-select: none; -webkit-user-select: none; }
+.ovstage { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+.abovh.fix, .abovh.fix.g3 { display: grid; grid-template-columns: 560px 1220px 560px !important; gap: 22px; padding: 26px; width: max-content; background: #44586d; border: 3px solid #2f3e4e; border-radius: 6px; box-shadow: inset 0 0 0 2px #56708a; }
+.abovh.fix .abrow { flex-wrap: nowrap; }
+.abovh.fix .abcol { gap: 16px; }
+.abovh.fix .abp { background: #4b6077; border-color: #e6ecf2; }
+.abovh.fix .abp h4 { background: #4b6077; }
+.ovhalf { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; }
+@media (max-width: 600px) { .abbar { gap: 6px; margin-bottom: 8px; } .abbar .btn { min-height: 36px; padding: 0 10px; font-size: 13px; } .ovz { margin-left: 0; gap: 4px; } .ovz .btn { min-width: 34px; } .abnote { font-size: 11px; margin-top: 6px; } }
