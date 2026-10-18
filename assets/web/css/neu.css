@@ -554,7 +554,7 @@ body.lay-top .top .search { max-width: 340px; }
 .mc-screen .ln.lb > span:nth-child(2), .mc-screen .ln.da > span:nth-child(2) { text-align: center; }
 .mc-screen .kw { color: #fff; } .mc-screen .kg { color: #35f27c; } .mc-screen .kc { color: #3de4ff; } .mc-screen .ka { color: #ffa21f; } .mc-screen .km { color: #ff5cf0; } .mc-screen .ky { color: #fff04a; }
 .mc-screen .ti { justify-content: center; color: #fff; font-size: 21px; }
-.mc-screen .ti.amb { color: #ffc400; }
+.mc-screen .ti.amb { color: #fff04a; }
 .mc-screen .lb { color: #fff; font-size: 14px; align-items: flex-end; line-height: 1; padding-bottom: 2px; padding-left: 14px; padding-right: 14px; }
 .mc-screen .da { color: #35f27c; align-items: flex-start; line-height: 22px; padding-left: 4px; padding-right: 4px; }
 .mc-screen .da .cy { color: #3de4ff; } .mc-screen .da .amb { color: #ffc400; }

@@ -4,21 +4,27 @@
   var EXPL = {
     route: ['FROM/TO', 'Hier gibst du Abflug- und Zielflughafen als ICAO-Codes ein, getrennt durch einen Schrägstrich, zum Beispiel EDDM/EDDH. Danach richtet sich der ganze Flugplan.'],
     req: ['INIT REQUEST', 'Holt den Plan aus dem Flugplaner (SimBrief). Er füllt die INIT-Seite und legt die Route als vorläufigen Flugplan (gelb) in die F-PLN-Seite. Dort musst du ihn mit INSERT übernehmen.'],
-    flt: ['FLT NBR', 'Die Flugnummer, bis zu 8 Zeichen. Sie erscheint später auf der Bodenstation und in der ATC-Kommunikation.'],
-    ci: ['COST INDEX', 'Verhältnis von Zeitkosten zu Spritkosten. Ein kleiner Wert heißt sparsam und langsam, ein großer heißt schneller und durstiger. Er steuert die Geschwindigkeit im Reiseflug.'],
+    flt: ['FLT NBR', 'Hier steht das ATC-Rufzeichen aus dem Flugplan (Feld ATC CALLSIGN), nicht unbedingt die Flugnummer auf dem Ticket, zum Beispiel DLH9KL. Der Transponder sendet es an die Lotsen. Steht hier etwas Falsches, sieht der Lotse ein falsches Rufzeichen. Bis zu 8 Zeichen.'],
+    ci: ['COST INDEX', 'Steht im Flugplan und kommt vom Dispatch. 0 heißt: so wenig Sprit wie möglich, langsamer. 999 heißt: so schnell wie möglich. Der Wert legt Geschwindigkeit und beste Flughöhe fest und darf im Flug geändert werden, etwa bei Verspätung.'],
     crz: ['CRZ FL/TEMP', 'Geplante Reiseflughöhe als Flugfläche, zum Beispiel FL350. Die Temperatur darf folgen, sie wird sonst geschätzt.'],
     v1: ['V1', 'Entscheidungsgeschwindigkeit, Pflichtfeld (orange Kästchen). Ab hier wird der Start nicht mehr abgebrochen, auch bei einer Störung.'],
     vr: ['VR', 'Rotationsgeschwindigkeit. Hier hebst du die Nase an. VR liegt gleich hoch oder höher als V1.'],
     v2: ['V2', 'Startsteiggeschwindigkeit mit einem Triebwerk ausgefallen. V2 liegt gleich hoch oder höher als VR.'],
     trans: ['TRANS ALT', 'Übergangshöhe. Sie kommt aus der Datenbank, sobald der Abflughafen feststeht (in Deutschland meist 5000 ft), und kann geändert werden. Darüber stellst du den Höhenmesser auf Standard (1013). In Deutschland meist 5000 ft.'],
-    thr: ['THR RED/ACC', 'Höhen über dem Meer, in denen die Schubreduzierung und die Beschleunigung nach dem Start beginnen. Standard: 1500 ft über der Piste, mindestens 400 ft. CLR stellt den Standard wieder her.'],
-    flaps: ['FLAPS/THS', 'Klappenstellung und Trimmung für den Start, zum Beispiel 1/UP0.5.'],
-    flex: ['FLEX TO TEMP', 'Angenommene Temperatur, mit der der Start mit weniger Schub berechnet wird. Das schont die Triebwerke.'],
+    thr: ['THR RED/ACC', 'Höhen über dem Meer: Ab THR RED nimmst du den Schub von TOGA/FLEX auf CLIMB zurück, ab ACC beschleunigt das Flugzeug auf Steiggeschwindigkeit. Vorgabe hier 1500 ft über der Piste, viele Airlines in Deutschland nutzen 1000 ft. Nur ACC ändern: /3340 eintippen. ACC ist nie tiefer als THR RED.'],
+    flaps: ['FLAPS/THS', 'Klappenstellung für den Start und die Trimmung der Höhenflosse (THS) aus dem Loadsheet, zum Beispiel 1/UP0.8. Die Trimmung hängt vom Schwerpunkt ab: Sie sorgt dafür, dass sich das Abheben immer gleich anfühlt.'],
+    flex: ['FLEX TO TEMP', 'Angenommene Temperatur für einen Start mit weniger Schub. Sie liegt immer über der echten Außentemperatur: Das Triebwerk rechnet mit heißer Luft und gibt weniger Leistung. Das schont die Triebwerke. Den Wert liefert das Performance-Programm.'],
     from: ['FROM', 'Der Abflugort ganz oben im Flugplan. Von hier an zählt die Route.'],
     wp: ['Wegpunkt', 'Ein Wegpunkt der Route mit Zeit, Geschwindigkeit und Höhe. Tippe einen neuen Namen und drücke die Taste daneben: Er wird davor eingefügt, danach folgt eine DISCONTINUITY. Steht der Name schon weiter hinten im Plan, fallen die Punkte dazwischen weg. CLR und Taste löscht den Punkt, an seiner Stelle steht dann eine DISCONTINUITY.'],
     'new': ['Freie Zeile', 'Hier hängst du einen weiteren Wegpunkt an das Ende der Route an. Der Name muss in der Datenbank stehen, sonst kommt NOT IN DATABASE.'],
     dest: ['DEST', 'Der Zielflughafen am Ende des Flugplans.'],
     disco: ['F-PLN DISCONTINUITY', 'Eine Lücke im Flugplan: Hier weiß der Rechner nicht, wie es weitergeht. Tippe einen Wegpunkt und drücke die Taste daneben, dann wird er davor eingefügt. Mit CLR und der Taste löschst du die Lücke, wenn der Plan zusammenhängt.'],
+    toshift: ['TO SHIFT', 'Startest du nicht am Pistenanfang, sondern von einer Kreuzung (Intersection), trägst du hier ein, wie viele Meter du vom Anfang entfernt stehst. Beim Schubhebel-Vorschieben setzt der Rechner seine Position auf diesen Punkt.'],
+    tripwind: ['TRIP WIND', 'Mittlerer Wind auf der Strecke aus dem Flugplan. HD oder - für Gegenwind, TL oder + für Rückenwind, zum Beispiel TL6. Die MCDU rechnet Trip-Kraftstoff und Zeit damit nach.'],
+    mdf: ['MIN DEST FOB', 'Mindestkraftstoff bei der Ankunft: Alternate plus Endreserve. Liegt die Prognose darunter, musst du über eine Ausweichlandung nachdenken.'],
+    latrev: ['LAT REV', 'Seitliche Änderung ab diesem Punkt (linke Taste neben einem Wegpunkt ohne Eingabe). NEXT WPT hängt einen Punkt dahinter an, NEW DEST wechselt das Ziel. Das Ergebnis ist ein gelber vorläufiger Plan (TMPY), den du auf F-PLN mit INSERT übernimmst oder mit ERASE verwirfst.'],
+    nextwpt: ['NEXT WPT', 'Neuer Punkt direkt hinter dem gewählten. Steht er schon weiter hinten im Plan, fallen die Punkte dazwischen weg. Sonst folgt danach eine DISCONTINUITY.'],
+    newdest: ['NEW DEST', 'Neues Ziel ab dem gewählten Punkt. Alle Punkte dahinter fallen weg, danach steht eine DISCONTINUITY.'],
     erase: ['ERASE', 'Verwirft den vorläufigen Flugplan (gelb). Es bleibt der bisherige gültige Flugplan.'],
 
     go: ['Seitenwechsel', 'Mit dieser Taste springst du zur genannten Unterseite. Der Pfeil zeigt die Richtung: < links gehört zur linken, > zur rechten Taste.'],
@@ -28,16 +34,16 @@
     block: ['BLOCK', 'Gesamter Kraftstoff vor dem Start in Tonnen, wie ihn der Flugplan vorgibt. Daraus rechnet die MCDU die Reserven.'],
     trip: ['TRIP / TIME', 'Geschätzter Kraftstoff und Flugzeit bis zum Ziel auf der geplanten Route. Wird aus dem Flugplan berechnet.'],
     rsv: ['RTE RSV / %', 'Streckenreserve (Contingency) in Tonnen und als Prozent des Trips. Üblich sind 5 Prozent.'],
-    altnf: ['ALTN / TIME', 'Kraftstoff und Zeit bis zum Ausweichflughafen.'],
-    final: ['FINAL / TIME', 'Endreserve, meist für 30 Minuten Warteschleife in 1500 ft über dem Ziel.'],
-    extra: ['EXTRA / TIME', 'Was nach allen Pflichtreserven übrig bleibt. Negativ heißt: zu wenig Kraftstoff geplant.'],
+    altnf: ['ALTN/TIME', 'Kraftstoff und Zeit vom Ziel zum Ausweichflughafen.'],
+    final: ['FINAL/TIME', 'Gesetzliche Endreserve: Kraftstoff für 30 Minuten Warteschleife. Sie bleibt im Normalfall immer im Tank.'],
+    extra: ['EXTRA/TIME', 'Was über alle Reserven hinaus im Tank ist, als Kraftstoff und Zeit, die du über dem Ziel noch warten könntest. Negativ und orange heißt: zu wenig getankt.'],
     dir: ['DIR TO', 'Direkt zu einem Wegpunkt. Tippe ihn oder wähle ihn links aus der Liste, dann erscheinen <ERASE und DIRECT TO* (orange). Mit DIRECT TO* gilt der direkte Weg sofort, alle Punkte davor fallen weg.'],
     optfl: ['OPT FL', 'Wirtschaftlich beste Flughöhe für das jetzige Gewicht. Sie steigt, wenn das Flugzeug leichter wird.'],
     recmax: ['REC MAX', 'Höchste empfohlene Flughöhe. Höher fliegt man mit wenig Reserve zum Buffet.'],
     prog_to: ['TO', 'Der nächste Wegpunkt mit Abstand und Zeit. Hier prüfst du im Flug, ob du auf Plan liegst.'],
     efob: ['EFOB', 'Geschätzter Kraftstoff bei Ankunft. Sinkt er unter die Reserve, musst du reagieren.'],
-    vor1: ['VOR 1 / FREQ', 'Funkfeuer-Frequenz für den ersten Empfänger, 108.00 bis 117.95 MHz. Oder der Kennbuchstabe des Feuers.'],
-    vor2: ['VOR 2 / FREQ', 'Dasselbe für den zweiten Empfänger.'],
+    vor1: ['VOR 1 / FREQ', 'Funkfeuer für den ersten Empfänger. Am besten die Kennung eintippen (drei Buchstaben), die Frequenz trägt die MCDU dann selbst ein. Gibt es die Kennung mehrmals, nimmt die Übung das nächstgelegene. Die Funkfeuer hier sind erfundene Übungsdaten, eins je Flughafen, Kennung aus dem Ortsnamen (zum Beispiel HAM).'],
+    vor2: ['VOR 2 / FREQ', 'Dasselbe für den zweiten Empfänger. Kennung oder Frequenz.'],
     crs1: ['CRS (VOR 1)', 'Kurs, den du auf dem Feuer 1 fliegen willst, 3 Ziffern.'],
     crs2: ['CRS (VOR 2)', 'Kurs zum Feuer 2, 3 Ziffern.'],
     ils: ['ILS / FREQ', 'Frequenz des Instrumentenlandesystems, 108.10 bis 111.95 MHz. Nur dann zeigt das PFD den ILS-Kurs.'],
@@ -87,6 +93,15 @@
   var TA = { EDDF: '5000', EDDM: '5000', EDDH: '5000', EDDB: '5000', EDDL: '5000', EDDK: '5000', EDDS: '5000', EDDV: '5000', EDDN: '5000', EDDW: '5000', EDDP: '5000', EDDC: '5000', EDDG: '5000', EDLW: '5000', EDSB: '5000',
     LOWW: '10000', LSZH: '7000', EHAM: '3000', LFPG: '5000', EGLL: '6000', EKCH: '5000', LEMD: '13000', LIRF: '7000', ESSA: '5000' };
   var DISCO = 'DISCO';
+  /* Übungs-Funkfeuer: erfundene Kennung und Frequenz je Flughafen, nicht zur Navigation */
+  var VOR = {};
+  (function () { var A = window.VpANav.AIRPORTS, k = Object.keys(A); k.forEach(function (c, i) {
+    var n = A[c][0].normalize('NFD').replace(/[^A-Za-z]/g, '').toUpperCase(), id = n.slice(0, 3), f = (112 + ((i * 7) % 119) * 0.05).toFixed(2);
+    (VOR[id] = VOR[id] || []).push({ id: id, f: f, apt: c }); }); })();
+  function vorNear(id, ref) { var l = VOR[id]; if (!l) return null; if (!ref || !DB[ref]) return l[0]; return l.slice().sort(function (a, b) { return dist(ref, a.apt) - dist(ref, b.apt); })[0]; }
+  /* Gültigkeit der Navigationsdatenbank: AIRAC-Zyklen zu 28 Tagen ab 25.01.2024 */
+  function airac(off) { var d0 = Date.UTC(2024, 0, 25), n = Math.floor((Date.now() - d0) / 864e5 / 28) + (off || 0), a = new Date(d0 + n * 28 * 864e5), b = new Date(d0 + (n + 1) * 28 * 864e5 - 864e5), M = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    var f = function (x) { return pad2(x.getUTCDate()) + M[x.getUTCMonth()]; }; return f(a) + '-' + f(b); }
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
   function routeDist(S) {
     var ids = []; if (S.v.from) ids.push(S.v.from); (S.tmp || S.route).forEach(function (i) { if (i !== DISCO) ids.push(i); }); if (S.v.to) ids.push(S.v.to);
@@ -101,7 +116,7 @@
     if (f === 'crz') { m = /^(?:FL)?(\d{3})(?:\/-?\d{1,2})?$/.exec(s); return m ? 'FL' + m[1] : null; }
     if (f === 'v1' || f === 'vr' || f === 'v2') return /^\d{3}$/.test(s) && +s >= 100 && +s <= 250 ? s : null;
     if (f === 'trans') return /^\d{4,5}$/.test(s) && +s <= 18000 ? s : null;
-    if (f === 'thr') return /^\d{3,4}\/\d{3,4}$/.test(s) ? s : null;
+    if (f === 'thr') return /^\d{3,5}\/\d{3,5}$|^\d{3,5}$|^\/\d{3,5}$/.test(s) ? s : null;
     if (f === 'flaps') { m = /^([0-3])\/(?:(UP|DN)(\d(?:\.\d)?)|(\d(?:\.\d)?)(UP|DN))$/.exec(s); return m ? m[1] + '/' + (m[2] || m[5]) + (+(m[3] || m[4])).toFixed(1) : null; }
     if (f === 'flex') return /^\d{2}$/.test(s) ? s : null;
 
@@ -116,7 +131,11 @@
     if (f === 'enaga') return /^\d{3,4}$/.test(s) ? s : null;
     if (f === 'block') return /^\d{1,2}\.\d$/.test(s) ? s : null;
     if (f === 'dir') return DB[s] ? s : null;
-    if (f === 'vor1' || f === 'vor2') return /^1(0[89]|1[0-7])\.\d{2}$/.test(s) ? s : null;
+    if (f === 'vor1' || f === 'vor2') return /^1(0[89]|1[0-7])\.\d{2}$/.test(s) || /^[A-Z]{3}$/.test(s) ? s : null;
+    if (f === 'nextwpt') return DB[s] ? s : null;
+    if (f === 'newdest') return /^[A-Z]{4}$/.test(s) ? s : null;
+    if (f === 'toshift') return /^\d{1,4}$/.test(s) && +s <= 4000 ? String(+s) : null;
+    if (f === 'tripwind') { m = /^(HD|TL|H|T|\+|-)?(\d{1,3})$/.exec(s); return m ? ((m[1] === '+' || m[1] === 'T' || m[1] === 'TL') ? 'TL' : 'HD') + ('00' + m[2]).slice(-3) : null; }
     if (f === 'crs1' || f === 'crs2' || f === 'ilscrs') return /^\d{3}$/.test(s) && +s <= 360 ? s : null;
     if (f === 'ils') return /^1(0[89]|1[01])\.\d{2}$/.test(s) ? s : null;
     if (f === 'adf1' || f === 'adf2') return /^\d{3,4}(\.\d)?$/.test(s) && +s >= 190 && +s <= 1750 ? s : null;
@@ -137,15 +156,16 @@
   function fplnEntries(S) {
     var e = [];
     e.push({ k: 'from', id: S.v.from || '----' });
-    S.route.forEach(function (id, i) { e.push(id === DISCO ? { k: 'disco', idx: i } : { k: 'wp', id: id, idx: i }); });
-    e.push({ k: 'dest', id: S.v.to || '----', idx: S.route.length });
+    var L = S.tmp || S.route;
+    L.forEach(function (id, i) { e.push(id === DISCO ? { k: 'disco', idx: i } : { k: 'wp', id: id, idx: i }); });
+    e.push({ k: 'dest', id: (S.tmp && S.tmpTo) || S.v.to || '----', idx: L.length });
     if (S.v.altn) { e.push({ k: 'end', t: '------END OF F-PLN------' }); e.push({ k: 'altn', id: S.v.altn }); e.push({ k: 'end', t: '---END OF ALTN F-PLN---' }); }
     else { e.push({ k: 'end', t: '------END OF F-PLN------' }); e.push({ k: 'end', t: '-----NO ALTN F-PLN-----' }); }
     return e;
   }
   /* Vorhersage je Punkt (Näherung): Steigflug etwa 3,6 NM je 1000 ft, Sinkflug etwa 3,1 NM, im Mittel 420 kt */
   function predict(S, en) {
-    var crz = S.v.crz ? +S.v.crz.slice(2) * 100 : 0, ok = !!(S.v.from && S.v.to && crz && DB[S.v.from] && DB[S.v.to]);
+    var to = (S.tmp && S.tmpTo) || S.v.to, crz = S.v.crz ? +S.v.crz.slice(2) * 100 : 0, ok = !!(S.v.from && to && crz && DB[S.v.from] && DB[to]);
     var cum = 0, prev = null, out = [];
     en.forEach(function (x) { if (x.k === 'from' || x.k === 'wp' || x.k === 'dest') { if (prev && DB[prev] && DB[x.id]) cum += dist(prev, x.id); prev = x.id; x.cum = cum; } });
     var total = cum, ta = +(S.v.trans || TA[S.v.from] || 5000);
@@ -154,7 +174,7 @@
       var d = x.cum, alt = Math.max(0, Math.min(crz, d * crz / (crz / 1000 * 3.6), (total - d) * crz / (crz / 1000 * 3.1))), t = d < 1 ? 0 : Math.round(d / 7 + 4 * Math.min(1, d / 40));
       x.pt = pad2(Math.floor(t / 60)) + pad2(t % 60);
       if (x.k === 'from') { var e0 = DB[S.v.from].elev || 0; x.ps = (S.v.v1 || '---') + '/' + ('     ' + e0).slice(-5); return; }
-      if (x.k === 'dest') { var e1 = DB[S.v.to].elev || 0; x.ps = '---/' + ('     ' + e1).slice(-5); return; }
+      if (x.k === 'dest') { var e1 = DB[to].elev || 0; x.ps = '---/' + ('     ' + e1).slice(-5); return; }
       var a = alt > ta ? 'FL' + ('00' + Math.round(alt / 100)).slice(-3) : ('     ' + Math.round(alt / 10) * 10).slice(-5);
       x.ps = (alt < 10000 ? '250' : crz > 28000 && alt > 28000 ? '.78' : '290') + '/' + a;
     });
@@ -182,7 +202,7 @@
       ] },
       perf: { title: 'TAKE OFF', rows: [
         { l: 'V1', ld: v.v1 || box(3), lk: 'v1', m: 'FLP RETR', md: 'F=' + (v.v2 ? String(+v.v2 + 12) : '---'), r: 'RWY', rd: '--' },
-        { l: 'VR', ld: v.vr || box(3), lk: 'vr', m: 'SLT RETR', md: 'S=' + (v.v2 ? String(+v.v2 + 32) : '---'), r: 'TO SHIFT', rd: '[M][    ]*', rk: 'na' },
+        { l: 'VR', ld: v.vr || box(3), lk: 'vr', m: 'SLT RETR', md: 'S=' + (v.v2 ? String(+v.v2 + 32) : '---'), r: 'TO SHIFT', rd: '[M]' + (v.toshift ? ('    ' + v.toshift).slice(-4) : '[  ]*'), rk: 'toshift' },
         { l: 'V2', ld: v.v2 || box(3), lk: 'v2', m: 'CLEAN', md: 'O=' + (v.v2 ? String(+v.v2 + 62) : '---'), r: 'FLAPS/THS', rd: v.flaps || '[ ]/[    ]', rk: 'flaps' },
         { l: 'TRANS ALT', ld: v.trans || taDef || '[    ]', lk: 'trans', r: 'FLEX TO TEMP', rd: v.flex ? v.flex + '°' : '[  ]°', rk: 'flex' },
         { l: 'THR RED/ACC', ld: v.thr || (accDef ? accDef + '/' + accDef : '[    ]/[    ]'), lk: 'thr', r: 'ENG OUT ACC', rd: v.ena || accDef || '[    ]', rk: 'ena' },
@@ -195,6 +215,7 @@
     var nav = function (lab, to, side) { var r = { l: '', ld: '', r: '', rd: '' }; if (side === 'R') { r.rd = lab + '>'; r.rk = 'go:' + to; } else { r.ld = '<' + lab; r.lk = 'go:' + to; } return r; };
     var tot = routeDist(S), trip = tot ? Math.round(tot * 5.5 + 600) / 1000 : null, tmin = tot ? Math.round(tot / 7 + 10) : null, pp = S.plan && S.plan.tripKg && S.plan.to === S.v.to && S.plan.from === S.v.from ? S.plan : null; if (pp) { trip = pp.tripKg / 1000; tmin = Math.round(pp.eteMin); }
     var fmt = function (m) { return pad2(Math.floor(m / 60)) + pad2(m % 60); };
+    if (trip != null && v.tripwind) { var tw = +v.tripwind.slice(2) * (v.tripwind[0] === 'T' ? -1 : 1); trip = Math.round(trip * (1 + tw * 0.003) * 1000) / 1000; tmin = Math.round(tmin * (1 + tw * 0.002)); }
     var ready = !!(v.zfw && v.block && trip != null);
     var rsv = trip != null ? Math.round(trip * 50) / 1000 : null;
     var altF = pp ? pp.altnKg / 1000 : (v.altn && v.to && DB[v.altn] && DB[v.to] ? (700 + dist(v.to, v.altn) * 5.2) / 1000 : 0);
@@ -207,7 +228,7 @@
       { l: 'TRIP/TIME', ld: ready ? trip.toFixed(1) + '/' + fmt(tmin) : '---.-/----', r: 'BLOCK', rd: v.block || box(4), rk: 'block' },
       { l: 'RTE RSV/%', ld: ready ? rsv.toFixed(1) + '/5.0' : '---.-/5.0', lc: 'c', r: '', rd: v.block ? '' : 'FUEL PLANNING}', rk: v.block ? null : 'fplan', rc: 'a' },
       { l: 'ALTN/TIME', ld: ready && altF ? altF.toFixed(1) + '/' + fmt(altT) : '---.-/----', lc: 'c', r: 'TOW/LW', rd: ready ? (zfwN + blk - taxiF).toFixed(1) + '/' + (zfwN + blk - taxiF - trip).toFixed(1) : '---.-/---.-' },
-      { l: 'FINAL/TIME', ld: ready ? finF.toFixed(1) + '/0030' : '---.-/0030', lc: 'c', r: 'TRIP WIND', rd: 'HD000', rc: 'c' },
+      { l: 'FINAL/TIME', ld: ready ? finF.toFixed(1) + '/0030' : '---.-/0030', lc: 'c', r: 'TRIP WIND', rd: v.tripwind || 'HD000', rk: 'tripwind' },
       { l: 'MIN DEST FOB', ld: ready ? (altF + finF).toFixed(1) : '---.-', lc: 'c', r: 'EXTRA/TIME', rd: ready ? extra.toFixed(1) + '/' + (extra > 0 ? fmt(Math.round(extra / 2.4 * 60)) : '----') : '---.-/----', rc: extra != null && extra < 0 ? 'a' : 'g' }
     ] };
     var pto = v.progto && DB[v.progto] && v.from ? DB[v.progto] : null, pbrg = pto ? window.VpANav.bearing(v.from, v.progto) : null;
@@ -230,7 +251,13 @@
     P['data-pos'] = { title: 'POSITION MONITOR', rows: [{ l: 'FMGC1', ld: '4829.1N/01147.6E', r: '', rd: '' }, { l: 'GPIRS', ld: '4829.0N/01147.7E', r: '', rd: '' }, { l: 'MIX IRS', ld: '4829.1N/01147.6E', r: '', rd: '' }, { l: 'IRS 1', ld: '4829.1N/01147.7E', r: '', rd: '' }, { l: 'IRS 2', ld: '4829.0N/01147.6E', r: '', rd: '' }, back()] };
     P['data-irs'] = { title: 'IRS MONITOR', rows: [{ l: 'IRS 1', ld: 'NAV', r: 'GS', rd: '0KT' }, { l: 'IRS 2', ld: 'NAV', r: 'GS', rd: '0KT' }, { l: 'IRS 3', ld: 'NAV', r: 'GS', rd: '0KT' }, RD(), RD(), back()] };
     P['data-gps'] = { title: 'GPS MONITOR', rows: [{ l: 'GPS 1', ld: 'NAV', r: 'SAT', rd: '9' }, { l: 'GPS 2', ld: 'NAV', r: 'SAT', rd: '9' }, { l: 'ACCURACY', ld: 'HIGH', r: '', rd: '' }, RD(), RD(), back()] };
-    P['data-ac'] = { title: 'A/C STATUS', rows: [{ l: 'ENG', ld: 'LEAP-1A26', r: 'ACTIVE NAV DATA BASE', rd: 'BEISPIEL' }, { l: 'CHG CODE', ld: '[ ]', r: 'VALIDITY', rd: 'ENTWURF' }, { l: 'IDLE/PERF', ld: '+0.0/+0.0', r: '', rd: '' }, { l: 'SECOND NAV DATA BASE', ld: '', r: '', rd: '' }, RD(), back()] };
+    P['data-ac'] = { title: 'A320-251N', rows: [
+      { l: 'ENG', ld: 'LEAP-1A26', r: '', rd: '' },
+      { l: 'ACTIVE NAV DATA BASE', ld: airac(0), lc: 'c', r: '', rd: 'UEB0001', rc: 'c' },
+      { l: 'SECOND NAV DATA BASE', ld: airac(-1), lc: 'c', lk: 'na', r: '', rd: '' },
+      { l: '', ld: '', r: '', rd: '' },
+      { l: 'CHG CODE', ld: '[ ]', lk: 'na', lc: 'c', r: '', rd: '' },
+      { l: 'IDLE/PERF', ld: '+0.0/+0.0', r: '', rd: 'STATUS/XLOAD>', rk: 'na' }] };
     var o0 = S.v.from || 'EDDF', airs = Object.keys(window.VpANav.AIRPORTS).filter(function (k) { return k !== o0; }).map(function (k) { return { k: k, d: Math.round(window.VpANav.dist(o0, k)) }; }).sort(function (x, y) { return x.d - y.d; }).slice(0, 3).map(function (x) { return { l: x.k, ld: x.k, r: 'DIST', rd: x.d + 'NM' }; });
     P['data-clo'] = { title: 'CLOSEST AIRPORTS', rows: [airs[0], airs[1], airs[2], RD(), RD(), back()] };
     P['data-eqt'] = { title: 'EQUI-TIME POINT', rows: [{ l: 'ETP', ld: '[ ]', r: 'TO', rd: '[ ]' }, { l: 'FROM', ld: S.v.from || '----', r: '', rd: '' }, RD(), RD(), RD(), back()] };
@@ -297,13 +324,22 @@
       var x = en[S.scroll + i];
       if (!x) { rows.push({ l: '', ld: '', r: '', rd: '' }); continue; }
       var lab = i === 0 ? { l: x.k === 'from' ? 'FROM' : '', m: 'TIME', r: 'SPD/ALT' } : { l: x.brg != null && x.n === 1 ? 'BRG' + deg(x.brg) : x.brg != null && x.n === 2 ? 'TRK' + deg(x.brg) : '', m: x.leg != null ? x.leg + 'NM' : '', r: '' };
-      if (x.k === 'disco' || x.k === 'end') { rows.push({ l: lab.l, m: '', r: i === 0 ? lab.r : '', c: x.k === 'disco' ? '---F-PLN DISCONTINUITY--' : x.t, lk: x.k === 'disco' ? 'fp' + i : null, fe: x }); continue; }
+      if (x.k === 'disco' || x.k === 'end') { rows.push({ l: lab.l, m: '', r: i === 0 ? lab.r : '', c: x.k === 'disco' ? '---F-PLN DISCONTINUITY--' : x.t, cc: S.tmp ? 'y' : 'w', lk: x.k === 'disco' ? 'fp' + i : null, fe: x }); continue; }
       if (x.k === 'altn') { rows.push({ l: '', m: '', r: '', ld: x.id, lc: 'c', md: '', rd: '', fe: x, lk: 'fp' + i }); continue; }
-      rows.push({ l: lab.l, m: lab.m, r: lab.r, ld: x.id, lc: x.n === 1 ? 'w' : 'g', lk: 'fp' + i, fe: x, md: x.pt, rd: x.ps, rc: 'g' });
+      rows.push({ l: lab.l, m: lab.m, r: lab.r, ld: x.id, lc: S.tmp ? 'y' : x.n === 1 ? 'w' : 'g', lk: 'fp' + i, fe: x, md: x.pt, mc: S.tmp ? 'y' : 'g', rd: x.ps, rc: S.tmp ? 'y' : 'g' });
     }
     var dEnd = en.filter(function (x) { return x.k === 'dest'; })[0];
-    rows.push({ l: 'DEST', m: 'TIME', r: 'DIST  EFOB', ld: v.to || '----', lc: 'w', md: dEnd && dEnd.pt || '----', mc: 'w', rd: (ftot ? Math.round(ftot) : '----') + '  ' + (ready ? efob : '--.-'), rc: 'w' });
-    P.fpln = { title: v.flt || '', rows: rows };
+    if (S.tmp) rows.push({ l: '', ld: '<ERASE', lk: 'erase', lc: 'a', r: '', rd: 'INSERT*', rk: 'insert', rc: 'a' }); else rows.push({ l: 'DEST', m: 'TIME', r: 'DIST  EFOB', ld: v.to || '----', lc: 'w', md: dEnd && dEnd.pt || '----', mc: 'w', rd: (ftot ? Math.round(ftot) : '----') + '  ' + (ready ? efob : '--.-'), rc: 'w' });
+    P.fpln = { title: S.tmp ? 'TMPY' : v.flt || '', tmp: !!S.tmp, rows: rows };
+    var lr = S.lr;
+    if (lr) P.latrev = { title: 'LAT REV FROM ' + lr.id, rows: [
+      { l: '', ld: lr.k === 'from' ? '<DEPARTURE' : '', lk: lr.k === 'from' ? 'na' : null, r: '', rd: lr.k === 'from' ? 'FIX INFO>' : lr.k === 'dest' ? 'ARRIVAL>' : '', rk: lr.k === 'wp' ? null : 'na' },
+      { l: '', ld: lr.k === 'wp' ? '<OFFSET' : '', lk: lr.k === 'wp' ? 'na' : null, r: lr.k !== 'dest' ? 'LL XING/INCR/NO' : '', rd: lr.k !== 'dest' ? '[ ]°/[ ]°/[]' : '', rk: lr.k !== 'dest' ? 'na' : null },
+      { l: '', ld: lr.k === 'wp' ? '<HOLD' : '', lk: lr.k === 'wp' ? 'na' : null, r: lr.k !== 'dest' ? 'NEXT WPT' : '', rd: lr.k !== 'dest' ? '[     ]' : '', rk: lr.k !== 'dest' ? 'nextwpt' : null },
+      { l: 'ENABLE', ld: '<ALTN', lk: 'na', lc: 'w', r: lr.k !== 'dest' ? 'NEW DEST' : '', rd: lr.k !== 'dest' ? '[    ]' : '', rk: lr.k !== 'dest' ? 'newdest' : null },
+      { l: '', ld: '', r: '', rd: lr.k === 'wp' ? 'AIRWAYS>' : '', rk: lr.k === 'wp' ? 'na' : null },
+      { l: '', ld: '<RETURN', lk: 'go:fpln', r: '', rd: '' }
+    ] };
     var dl = S.route.filter(function (r) { return r !== DISCO; }).concat(v.to ? [v.to] : []);
     P.dir = { title: 'DIR TO', rows: [
       { l: 'DIR TO', ld: S.dirSel || '[     ]', lk: 'dir', lc: 'c', r: 'WITH', rd: '' },
@@ -370,7 +406,7 @@
         h += '<div class="ln ti' + (pg.tmp ? ' amb' : '') + '">' + esc(pg.title) + (pg.sub ? '<small>' + esc(pg.sub) + '</small>' : '') + '</div>';
         pg.rows.forEach(function (r) {
           h += '<div class="ln lb"><span>' + esc(r.l) + '</span><span>' + esc(r.m || '') + '</span><span>' + esc(r.r) + '</span></div>';
-          if (r.c != null) { h += '<div class="ln da"><span class="kw" style="grid-column:1/-1;text-align:center">' + esc(r.c) + '</span></div>'; return; }
+          if (r.c != null) { h += '<div class="ln da"><span class="k' + (r.cc || 'w') + '" style="grid-column:1/-1;text-align:center">' + esc(r.c) + '</span></div>'; return; }
           h += '<div class="ln da">' + cell(r.ld, r.lc || (r.lamb ? 'a' : r.lin ? 'c' : ''), r.lk) + cell(r.md || '', r.mc || 'g') + cell(r.rd, r.rc || (r.ramb ? 'a' : r.rin ? 'c' : ''), r.rk) + '</div>';
         });
       }
@@ -410,31 +446,31 @@
     }
     function fpSel(i) {
       var P = pages(S), r = P.fpln.rows[i]; if (!r || !r.fe) return;
-      var e = r.fe, list = S.route.slice();
+      var e = r.fe, list = (S.tmp || S.route).slice();
       S.expl = e.k === 'disco' ? 'disco' : e.k;
       var tidy = function (l) { var o = []; l.forEach(function (x) { if (x === DISCO && o[o.length - 1] === DISCO) return; o.push(x); }); return o; };
       if (S.sp === 'CLR') {
         if (e.k === 'wp') list[e.idx] = DISCO;
         else if (e.k === 'disco') list.splice(e.idx, 1);
         else { S.msg = 'NOT ALLOWED'; S.sp = ''; render(); return; }
-        S.route = tidy(list); S.sp = ''; S.msg = ''; render(); return;
+        if (S.tmp) S.tmp = tidy(list); else S.route = tidy(list); S.sp = ''; S.msg = ''; render(); return;
       }
-      if (!S.sp) { render(); return; }
+      if (!S.sp) { if (e.k === 'from' || e.k === 'wp' || e.k === 'dest') { S.lr = { k: e.k, id: e.id, idx: e.k === 'from' ? -1 : e.idx }; S.page = 'latrev'; S.expl = 'latrev'; S.msg = ''; } render(); return; }
       var id = S.sp.trim();
       if (e.k === 'from' || e.k === 'end' || e.k === 'altn') { S.msg = 'NOT ALLOWED'; render(); return; }
       if (!DB[id]) { S.msg = 'NOT IN DATABASE'; render(); return; }
       var t = e.idx, j = id === S.v.to ? list.length : list.indexOf(id, t);
       if (j >= t) list.splice(t, j - t);
       else { list.splice(t, 0, id); if (e.k !== 'disco' && list[t + 1] !== DISCO) list.splice(t + 1, 0, DISCO); }
-      S.route = tidy(list); S.sp = ''; S.msg = ''; render();
+      if (S.tmp) S.tmp = tidy(list); else S.route = tidy(list); S.sp = ''; S.msg = ''; render();
     }
     function sk(side, n) {
       var P = pages(S), pg = P[S.page]; if (!pg) return;
       var r = pg.rows[n - 1] || {}, f = side === 'L' ? r.lk : r.rk;
       if (!f) return;
       if (S.page === 'fpln') {
-        if (f === 'erase') { S.tmp = null; S.expl = 'erase'; S.msg = ''; render(); return; }
-        if (f === 'insert') { S.route = S.tmp.slice(); S.tmp = null; S.expl = 'insert'; S.msg = ''; render(); return; }
+        if (f === 'erase') { S.tmp = null; S.tmpTo = null; S.expl = 'erase'; S.msg = ''; render(); return; }
+        if (f === 'insert') { S.route = S.tmp.slice(); if (S.tmpTo) S.v.to = S.tmpTo; S.tmp = null; S.tmpTo = null; S.expl = 'insert'; S.msg = ''; render(); return; }
         fpSel(n - 1); return;
       }
       S.expl = f;
@@ -464,6 +500,14 @@
       if (!S.sp) { render(); return; }
       var val = validate(f, S.sp);
       if (val == null) { S.msg = 'FORMAT ERROR'; render(); return; }
+      if (f === 'nextwpt' || f === 'newdest') {
+        var L2 = S.route.slice(), at = S.lr.idx + 1;
+        if (f === 'newdest') { if (!(DB[val] && DB[val].apt)) { S.msg = 'NOT IN DATABASE'; render(); return; } S.tmp = L2.slice(0, at).concat([DISCO]); S.tmpTo = val; }
+        else { var j2 = val === S.v.to ? L2.length : L2.indexOf(val, at); if (j2 >= at) L2.splice(at, j2 - at); else L2.splice(at, 0, val, DISCO); S.tmp = L2.filter(function (x, k) { return !(x === DISCO && L2[k - 1] === DISCO); }); }
+        S.sp = ''; S.msg = ''; S.page = 'fpln'; S.scroll = Math.max(0, at - 1); S.expl = f; render(); return; }
+      if (f === 'thr') { var e2 = DB[S.v.from] && DB[S.v.from].elev != null ? Math.round(DB[S.v.from].elev + 1500) : 1500, cur2 = (S.v.thr || e2 + '/' + e2).split('/'), nv = val.split('/');
+        var th = nv[0] || cur2[0], ac = nv[1] || (nv[0] && +nv[0] > +cur2[1] ? nv[0] : cur2[1]); if (+ac < +th) { S.msg = 'ENTRY OUT OF RANGE'; render(); return; } S.v.thr = th + '/' + ac; S.sp = ''; S.msg = ''; render(); return; }
+      if ((f === 'vor1' || f === 'vor2') && /^[A-Z]{3}$/.test(val)) { var vv = vorNear(val, S.v.from); if (!vv) { S.msg = 'NOT IN DATABASE'; render(); return; } S.v[f] = vv.id + '/' + vv.f; S.sp = ''; S.msg = VOR[val].length > 1 ? 'NÄCHSTES ' + val + ' GEWÄHLT' : ''; render(); return; }
       if (f === 'dir') { S.dirSel = val; S.sp = ''; S.msg = ''; render(); return; }
       if (f === 'route' && (!DB[val.from] || !DB[val.to] || !DB[val.from].apt || !DB[val.to].apt)) { S.msg = 'NOT IN DATABASE'; render(); return; }
       if (f === 'altn' && !(DB[val] && DB[val].apt)) { S.msg = 'NOT IN DATABASE'; render(); return; }
