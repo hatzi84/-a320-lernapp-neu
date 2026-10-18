@@ -145,7 +145,44 @@ html[data-update] .tabbar .upd::after { content: ""; position: absolute; top: 10
 
 /* Beleuchtung: Instrumentenbeleuchtung lässt die Beschriftung leuchten, Deckenlicht hellt das Panel auf */
 .ovsvg .ovpnl { transition: fill .3s; } .ovsvg text { transition: fill .3s; }
-.ovsvg.integ text:not(.ovlt):not(.ovdst):not(.ovfiret):not(.ovfiret2) { fill: #ffd9a8; }
+.ovsvg.integ text:not(.ovlt):not(.ovdst):not(.ovfiret):not(.ovfiret2):not(.sc):not(.cklcdt):not(.ckl):not(.cktx) { fill: #ffd9a8; }
 .ovsvg.integ.i3 text:not(.ovlt):not(.ovdst):not(.ovfiret):not(.ovfiret2) { fill: #ffe9c8; filter: drop-shadow(0 0 2px rgba(255, 170, 80, .8)); }
 .ovsvg.integ .ovbox { stroke: #ffd9a8; }
 .ovsvg:not(.dome) .ovpnl { fill: #4d6074; } .ovsvg.dome.d2 .ovpnl { fill: #6a8198; }
+
+/* Cockpit-Zeichnungen (Glareshield, Hauptpanel, Pedestal, oberes Overhead) */
+.ovsvg .ckglare { fill: #23282d; } .ovsvg .ckmain { fill: #3a434c; stroke: #2a3138; stroke-width: 2; } .ovsvg .ckpnl2 { fill: #46525e; stroke: #33404c; stroke-width: 1.5; }
+.ovsvg .ckhit { fill: transparent; cursor: pointer; }
+.ovsvg .ckkey { fill: #23272b; stroke: #0d0f11; stroke-width: 1; } .ovsvg text.cktx { fill: #e9edf1; font-weight: 700; }
+.ovsvg .ckbar { fill: #18301f; } .ovsvg .ckbar.lit { fill: #4ef08a; filter: drop-shadow(0 0 3px #2fe070); }
+.ovsvg .ckcall { fill: #3a2a10; } .ovsvg .ckrecv { fill: #1a1d20; stroke: #555; } .ovsvg .ckrecv.lit { fill: #4ef08a; filter: drop-shadow(0 0 3px #2fe070); }
+.ovsvg .ckkring { fill: #2a2f35; stroke: #8c96a0; stroke-width: 1.5; } .ovsvg .ckknob { fill: #1d2125; stroke: #6c757e; stroke-width: 1.5; } .ovsvg .ckknob2 { fill: #2c3136; stroke: #8d96a0; stroke-width: 1; } .ovsvg .ckridge { stroke: #59626b; stroke-width: 1.5; }
+.ovsvg text.ckpm { fill: #9fb0c0; }
+.ovsvg .cklcd { fill: #0b0b09; stroke: #39424b; stroke-width: 2; } .ovsvg text.cklcdt { fill: #ff9f1a; font-family: "Courier New", monospace; font-weight: 700; filter: drop-shadow(0 0 2px rgba(255, 140, 0, .6)); }
+.ovsvg .cklamp { fill: #15171a; stroke: #2b3036; } .ovsvg .cklamp.lit.kr { fill: #5a0b08; } .ovsvg .cklamp.lit.ka { fill: #4a3100; }
+.ovsvg text.ckl { fill: #3a3f44; font-weight: 700; } .ovsvg text.ckl.lit.kr { fill: #ff4a3a; filter: drop-shadow(0 0 4px #ff2a1a); } .ovsvg text.ckl.lit.ka { fill: #ffb020; filter: drop-shadow(0 0 4px #ff9a00); }
+.ovsvg text.ckl.kg { fill: #2c4a35; } .ovsvg text.ckl.kr { fill: #4a2522; }
+.ovsvg .ckbezel { fill: #15191d; stroke: #4c5762; stroke-width: 2; } .ovsvg .ckscreen { fill: #000; }
+.ovsvg .ckclock { fill: #2a3138; stroke: #6f7a85; stroke-width: 2; }
+.ovsvg .ckgreen { fill: #10261a; stroke: #2b3a30; } .ovsvg .ckgreen.lit { fill: #4ef08a; filter: drop-shadow(0 0 4px #2fe070); } .ovsvg text.ckunlk { fill: #4a2522; }
+.ovsvg .ckslot { fill: #121417; stroke: #000; } .ovsvg .cklever { fill: #b8bec5; stroke: #5c636a; } .ovsvg .ckwheel { fill: #e8eaec; stroke: #7a8086; stroke-width: 2; }
+.ovsvg .ckscale { fill: none; stroke: #e8edf2; stroke-width: 2; } .ovsvg .ckneedle { stroke: #ffffff; stroke-width: 3; stroke-linecap: round; }
+.ovsvg .ckdet { stroke: #aeb6bf; stroke-width: 2; } .ovsvg .cklev { fill: #474d54; stroke: #c2c8ce; stroke-width: 2; } .ovsvg .ckwheelt { fill: #2a2d31; stroke: #000; }
+.ovsvg .ckflap { fill: #d9dde1; stroke: #6b7279; stroke-width: 2; } .ovsvg .cksb { fill: #3b4046; stroke: #c2c8ce; stroke-width: 2; } .ovsvg .ckpark { fill: #c9302a; stroke: #6a1410; stroke-width: 2; }
+.ovsvg .ckcb { fill: #121315; stroke: #444; } .ovsvg .ckcbg { fill: #1f7a3a; stroke: #0e3a1a; } .ovsvg .ckcbw { fill: #f2f2f2; } .ovsvg .ckcbl { stroke: #e8edf2; stroke-width: 1.2; fill: none; }
+/* Bildschirm-Inhalte */
+.ovsvg text.sc { font-family: Arial, Helvetica, sans-serif; font-weight: 400; filter: none; }
+.ovsvg text.sw { fill: #ffffff; } .ovsvg text.sg { fill: #2fe070; } .ovsvg text.sc.sc { } .ovsvg text.scy, .ovsvg text.sc.sc2 { fill: #2fd6ff; }
+.ovsvg text.sa { fill: #ffa51a; } .ovsvg text.sr { fill: #ff3a2a; } .ovsvg text.sm { fill: #ff5aff; } .ovsvg text.sy { fill: #ffe43a; }
+.ovsvg .sl { stroke: #ffffff; stroke-width: 1.4; fill: none; } .ovsvg .syl { stroke: #ffe43a; stroke-width: 3; fill: none; }
+.ovsvg .ssky { fill: #1aa6e0; } .ovsvg .sgnd { fill: #8a5a2b; } .ovsvg .shz { stroke: #fff; stroke-width: 2; } .ovsvg .spl { stroke: #fff; stroke-width: 1.5; }
+.ovsvg .sroll { fill: none; stroke: #fff; stroke-width: 1.5; } .ovsvg .syel { fill: #ffe43a; }
+.ovsvg .sac { fill: #000; stroke: #ffe43a; stroke-width: 2; } .ovsvg .sacl { stroke: #ffe43a; stroke-width: 3; fill: none; } .ovsvg .sfd { stroke: #2fe070; stroke-width: 2.5; }
+.ovsvg .stape { fill: #3d4650; } .ovsvg .sbox { fill: #000; stroke: #ffe43a; stroke-width: 1.5; } .ovsvg .sbox2 { fill: #000; stroke: #fff; stroke-width: 1; }
+.ovsvg .sflag { fill: #000; stroke: #ff3a2a; stroke-width: 1.5; }
+.ovsvg .scy { fill: #2fd6ff; } .ovsvg .smag { fill: #ff5aff; }
+.ovsvg .sring { fill: none; stroke: #fff; stroke-width: 1.5; } .ovsvg .sring2 { fill: none; stroke: #fff; stroke-width: 1; stroke-dasharray: 4 4; }
+.ovsvg .sgauge { fill: none; stroke: #fff; stroke-width: 2; } .ovsvg .sneedle { stroke: #2fe070; stroke-width: 3; }
+.ovsvg .ssd { fill: none; stroke: #fff; stroke-width: 1.2; } .ovsvg .sgl { stroke: #2fe070; stroke-width: 2.5; fill: none; } .ovsvg .sal { stroke: #ffa51a; stroke-width: 2.5; fill: none; }
+.ovsvg .sgreen { fill: #2fe070; } .ovsvg .sdopen { fill: #ffa51a; } .ovsvg .sdclosed { fill: #2fe070; }
+.ovsvg.integ text.sc { filter: none; }

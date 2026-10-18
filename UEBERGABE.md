@@ -98,3 +98,5 @@ keystore/debug.keystore  fester Signaturschlüssel (bewusst im Repo, Hobby-Schl�
 - Grüne Systemlinien (HYD, FUEL, ELEC, AIR COND), Leuchtfelder in echten Farben, rote Schutzkappen, Batterie-Anzeigen.
 - Beleuchtung: OVHD INTEG LT lässt die Beschriftung leuchten, DOME hellt das Panel auf (nur mit Strom).
 - Verschieben mit einem Finger, Zoomen mit zwei; Knöpfe Ganz/Links/Mitte/Rechts.
+- Weitere Reiter als Zeichnung (`assets/web/js/cockpit.js`, VpACockpit): Glareshield (EFIS, FCU, Master Warn/Caut), Hauptpanel (PFD, ND, E/WD, SD, ISIS, Uhr, Fahrwerk, Autobremse, Bremsdruck), Pedestal (MCDU 1/2 → MCDU-Reiter, Switching, ECAM-Bedienteil, RMP, ACP, Schub, Klappen, Spoiler, ENG, Ruder-Trimm, Parkbremse, ATC/TCAS, WX, Tür) und „Overhead oben“ (Wartung, Sicherungen). Aktionen mit Präfix `xc` laufen über `VpACockpit.click`.
+- Bildschirme zeigen rote Flaggen (ATT/HDG/SPD/ALT, MAP NOT AVAIL), solange ADIRS aus ist.

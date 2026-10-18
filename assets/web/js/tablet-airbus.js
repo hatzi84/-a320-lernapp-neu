@@ -209,11 +209,13 @@ window.VpAAirbus = (function () {
   var LABS = { LTK1: 'L TK 1', LTK2: 'L TK 2', CTK1: 'CTR TK 1', CTK2: 'CTR TK 2', RTK1: 'R TK 1', RTK2: 'R TK 2', ICEIND: 'ICE IND & STBY', OVHDLT: 'OVHD INTEG LT' };
   var NOLAB = { ENG1FIRE: 1, APUFIRE: 1, ENG2FIRE: 1, TCOCK: 1, TFWD: 1, TAFT: 1, PROBE: 1, IR1: 1, IR2: 1, IR3: 1, RPLNTL: 1, RPLNTR: 1, WIPERL: 1, WIPERR: 1, BAT1: 1, BAT2: 1, ACESS: 1, GALLEY: 1, IDG1: 1, IDG2: 1, GEN1: 1, GEN2: 1, APUGEN: 1, EXT: 1, BUSTIE: 1, PACK1: 1, PACK2: 1, BLEED1: 1, BLEED2: 1, RAMAIR: 1, APUBLEED: 1, HOTAIR: 1, XBLEED: 1, PACKFLOW: 1 };
 
+  var SVGTABS = { ovhd: 1, upper: 1, glare: 1, main: 1, ped: 1 };
   function ovhd() {
+    var body = tab === 'ovhd' ? ovhdSvg() : VpACockpit.svg(tab, api());
     return '<div class="abbar"><button class="btn" data-a="preset" data-p="cold">Kalt und dunkel</button><button class="btn" data-a="preset" data-p="ready">Vor dem Anlassen</button>' +
       '<span class="ovz"><button class="btn" data-v="out" aria-label="Verkleinern">−</button><button class="btn" data-v="in" aria-label="Vergrößern">+</button><button class="btn" data-v="fit">Ganz</button><button class="btn" data-v="l">Links</button><button class="btn" data-v="c">Mitte</button><button class="btn" data-v="r">Rechts</button></span></div>' +
-      '<div class="ovview" id="ovview"><div class="ovstage" id="ovstage">' + ovhdSvg() + '</div></div>' +
-      '<p class="abnote">Mit einem Finger verschieben, mit zwei Fingern zoomen (am PC: Mausrad). Anordnung nach dem echten A320-Overhead, Zustände sind Beispiele.</p>';
+      '<div class="ovview" id="ovview"><div class="ovstage" id="ovstage">' + body + '</div></div>' +
+      '<p class="abnote">Mit einem Finger verschieben, mit zwei Fingern zoomen (am PC: Mausrad). Anordnung nach dem echten A320, Zustände sind Übungswerte.</p>';
   }
 
   /* ---------- Verschieben und Zoomen des Overheads ---------- */
@@ -226,7 +228,7 @@ window.VpAAirbus = (function () {
   function applyV() { var st = stage(); if (!st) return; clampV(); st.style.transform = 'translate(' + V.x + 'px,' + V.y + 'px) scale(' + V.s + ')'; }
   function fitS() { var vw = view(), st = stage(); return Math.min(vw.clientWidth / st.offsetWidth, vw.clientHeight / st.offsetHeight); }
   function zoomAt(f, cx, cy) { var s2 = Math.max(Math.min(fitS(), 0.3), Math.min(2.2, V.s * f)); V.x = cx - (cx - V.x) * s2 / V.s; V.y = cy - (cy - V.y) * s2 / V.s; V.s = s2; applyV(); }
-  function goCol(i) { var X = [[0, 346], [340, 1166], [1164, 1569]][i], vw = view(); V.s = Math.min(1.2, vw.clientWidth / (X[1] - X[0] + 20)); V.x = -X[0] * V.s; V.y = 0; applyV(); }
+  function goCol(i) { var X = (tab === 'ovhd' ? [[0, 346], [340, 1166], [1164, 1569]] : VpACockpit.cols[tab])[i], vw = view(); V.s = Math.min(1.2, vw.clientWidth / (X[1] - X[0] + 20)); V.x = -X[0] * V.s; V.y = 0; applyV(); }
   function setupView() {
     var vw = view(); if (!vw) return; sizeView();
     if (!V.s) { V.s = Math.max(fitS(), Math.min(0.6, vw.clientWidth / 600)); V.x = 0; V.y = 0; }
@@ -248,7 +250,7 @@ window.VpAAirbus = (function () {
   }
   function onView(t) { var vw = view(); if (!vw) return; var w = vw.clientWidth / 2, h = vw.clientHeight / 2;
     if (t === 'in') zoomAt(1.25, w, h); else if (t === 'out') zoomAt(0.8, w, h); else if (t === 'fit') { V.s = fitS(); V.x = 0; V.y = 0; applyV(); } else goCol(t === 'l' ? 0 : t === 'c' ? 1 : 2); }
-  window.addEventListener('resize', function () { if (tab === 'ovhd' && view()) { sizeView(); applyV(); } });
+  window.addEventListener('resize', function () { if (SVGTABS[tab] && view()) { sizeView(); applyV(); } });
 
   /* ---------- Eingaben ---------- */
   var REG = {};
@@ -272,12 +274,12 @@ window.VpAAirbus = (function () {
     if (t === 'tg' && c) { S[id] = (val(c) + 1) % c.pos.length; draw(); }
   }
 
-  function api() { return { S: S, N: N, ECAM: ECAM, item: itemH, reg: function (c) { REG[c.id] = c; return c; }, pb: pb, kn: kn, tg: tg, val: val, power: power, redraw: draw, setEcam: function (v) { ECAM = v; } }; }
-  function draw() { var y = root.scrollTop, parts = VpAAirbus2; root.innerHTML = tab === 'ovhd' ? ovhd() : parts.render(tab, api()); root.scrollTop = y; if (parts.after) parts.after(tab, root, api()); if (tab === 'ovhd') setupView(); }
+  function api() { return { S: S, N: N, ECAM: ECAM, item: itemH, reg: function (c) { REG[c.id] = c; return c; }, pb: pb, kn: kn, tg: tg, val: val, find: find, power: power, redraw: draw, setEcam: function (v) { ECAM = v; }, svg: { screw: screw, pb: pbSvg, kn: knSvg, tg: tgSvg } }; }
+  function draw() { var y = root.scrollTop, parts = VpAAirbus2; root.innerHTML = SVGTABS[tab] ? ovhd() : parts.render(tab, api()); root.scrollTop = y; if (parts.after) parts.after(tab, root, api()); if (SVGTABS[tab]) setupView(); }
 
   /* ---------- Schnittstelle ---------- */
   function mount(r, which) {
-    root = r; tab = which || 'ovhd'; if (!Object.keys(S).length) apply('ready');
+    root = r; if ((which || 'ovhd') !== tab) V.s = 0; tab = which || 'ovhd'; if (!Object.keys(S).length) apply('ready');
     if (!root._ab) { root._ab = 1; root.addEventListener('click', function (e) { var x = e.target.closest('[data-a^="x"]'); if (x) VpAAirbus2.click(x, api()); else onClick(e); }); }
     draw();
   }

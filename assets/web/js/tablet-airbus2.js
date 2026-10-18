@@ -99,6 +99,7 @@ window.VpAAirbus2 = (function () {
   }
   function click(x, A) {
     var t = x.dataset.a, id = x.dataset.id;
+    if (t.indexOf('xc') === 0) return VpACockpit.click(x, A);
     if (t === 'xtog') { A.S[id] = A.S[id] ? 0 : 1; if (id === 'AP1' && A.S.AP1) A.S.ATHR = A.S.ATHR === undefined ? 1 : A.S.ATHR; A.redraw(); return; }
     if (t === 'xecam') { A.setEcam(x.dataset.p); A.redraw(); return; }
     if (t === 'xnum') {
