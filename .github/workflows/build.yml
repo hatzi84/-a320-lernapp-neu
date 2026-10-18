@@ -59,9 +59,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp build/app/outputs/flutter-apk/app-release.apk bzf-lernapp.apk
+          cp build/app/outputs/flutter-apk/app-release.apk a320-lernapp.apk
           BN=$((100 + ${{ github.run_number }}))
-          gh release create "build-$BN" bzf-lernapp.apk --title "Build $BN" --notes "Automatischer Build"
+          gh release create "build-$BN" a320-lernapp.apk --title "Build $BN" --notes "Automatischer Build"
 
       - name: Test-APK ablegen (andere Zweige)
         if: github.ref != 'refs/heads/main'

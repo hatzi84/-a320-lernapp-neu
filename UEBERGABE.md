@@ -48,11 +48,13 @@ keystore/debug.keystore  fester Signaturschlüssel (bewusst im Repo, Hobby-Schl�
 - Alle Seiten sind reines HTML/CSS/JS ohne Framework. Das Ganze steckt in einer Flutter-WebView (`webview_flutter`). Die Inhalte werden mit der App als Asset ausgeliefert, kein Internet nötig.
 
 ## Bauen und Updates
-- Jeder Push baut per GitHub Actions. **Nur Pushes auf `main` veröffentlichen ein Release** (`build-N`, APK `bzf-lernapp.apk`); andere Zweige legen nur ein Test-APK als Artefakt ab.
+- Jeder Push baut per GitHub Actions. **Nur Pushes auf `main` veröffentlichen ein Release** (`build-N`, APK `a320-lernapp.apk`, bis build-115 hieß sie `bzf-lernapp.apk`); andere Zweige legen nur ein Test-APK als Artefakt ab.
 - **Build-Nummer = 100 + Lauf-Nummer** (`BN=$((100+run_number))`), damit sie höher als die alten Builds aus dem BZF-Repo ist (Android verweigert sonst Updates mit kleinerer Versionsnummer).
 - In der App: untere Leiste „Update“ oder der Punkt dort. Die App fragt `https://api.github.com/repos/hatzi84/-a320-lernapp-neu/releases/latest` ab, vergleicht `build-N` mit `BUILD_NUMBER` und lädt die APK.
   Repo ist öffentlich, kein Schlüssel nötig. Ein optionales Schlüsselfeld (SharedPreferences `gh_token`) bleibt für den Fall, dass das Repo einmal privat wird.
 - Paketname bleibt `de.hatzi.bzf_lernapp` (aus `flutter create --project-name bzf_lernapp`), App-Name „A320 Lernapp“. Gleiche Signatur wie früher, daher Update über die alte App möglich.
+- **Signatur:** `android_patch/patch.py` setzt in `android/app/build.gradle(.kts)` den Schlüssel `keystore/debug.keystore` fest ein; der Schritt „Signatur prüfen“ im Workflow bricht ab, wenn die APK anders signiert ist. Bis build-113 war jede APK zufällig signiert (Updates scheiterten mit „Paket steht in Konflikt“); ab build-115 ist die Signatur fest. Beim Bau ist die Code-Verkleinerung aus (`--no-shrink`), weil sie Plugin-Code beschädigt hat.
+- Der optionale Zugriffsschlüssel und `shared_preferences` sind entfernt; die Update-Suche läuft ohne Schlüssel gegen das öffentliche Repo.
 - Flutter lässt sich in der Cloud-Sitzung **nicht ausführen**. Dart-Änderungen immer zuerst auf einem Zweig pushen und den Lauf bei GitHub (Actions) abwarten, erst bei grün nach `main`. Die Webseiten in `assets/web` kann man dagegen vorab mit Playwright prüfen
   (Chromium ist vorinstalliert, `/opt/node22/lib/node_modules/playwright`, Fenstergrößen 800×1280, 1280×800, 390×844).
 - Ein Bau dauert etwa 7 bis 9 Minuten. Mit `send_later` (Erinnerung an sich selbst) auf das Ergebnis warten, nicht pollen.
