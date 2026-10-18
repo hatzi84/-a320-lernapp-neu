@@ -106,6 +106,7 @@
   function draw() { var y = root.parentElement; root.innerHTML = cur === null ? list() : chapter(cur); y.scrollTop = 0; }
   function mount(r) {
     root = r; draw();
+    window.vpaBack = function () { if (cur !== null) { cur = null; draw(); return true; } return false; };
     root.addEventListener('click', function (e) {
       var b = e.target.closest('button'); if (!b) return;
       if (b.dataset.c) { cur = +b.dataset.c; draw(); return; }

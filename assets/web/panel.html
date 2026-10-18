@@ -6,5 +6,6 @@
 <script>
 var root=document.getElementById('treal'),tabs=document.getElementById('tabs');
 VpAAirbus.mount(root,'ovhd');
+window.vpaBack=function(){var on=tabs.querySelector('.on');if(on&&on.dataset.t!=='ovhd'){tabs.firstElementChild.click();return true;}return false;};
 tabs.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(tabs.children,function(x){x.classList.toggle('on',x===b);});VpAAirbus.mount(root,b.dataset.t);});
 </script></body></html>

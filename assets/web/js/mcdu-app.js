@@ -72,6 +72,7 @@
 
     function show(t) { [].forEach.call($('itabs').children, function (x) { x.classList.toggle('on', x.dataset.t === t); }); [].forEach.call(root.querySelectorAll('[data-p]'), function (s) { s.hidden = s.dataset.p !== t; }); }
     $('itabs').onclick = function (e) { var b = e.target.closest('button'); if (b) show(b.dataset.t); };
+    window.vpaBack = function () { var on = $('itabs').querySelector('.on'); if (on && on.dataset.t !== 'task') { show('task'); return true; } if (m.state.page !== 'init') { m.go('init'); return true; } return false; };
 
     /* Sprung aus der Anleitung: Seite öffnen, frei üben */
     try { var go = sessionStorage.getItem('vpa.go'); if (go) { sessionStorage.removeItem('vpa.go'); $('modes').querySelector('[data-m="free"]').click(); m.go(go); } } catch (e) { }

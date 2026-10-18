@@ -167,6 +167,13 @@ class _WebHomeState extends State<WebHome> {
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
+        // Zuerst die Seite fragen: Reiter, Kapitel oder Unterseite schließen.
+        try {
+          final r = await _web.runJavaScriptReturningResult(
+            "(window.vpaBack && window.vpaBack()) ? 'yes' : 'no'",
+          );
+          if (r.toString().contains('yes')) return;
+        } catch (_) {}
         if (await _web.canGoBack()) {
           await _web.goBack();
         } else {

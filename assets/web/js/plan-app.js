@@ -115,6 +115,8 @@
 
   function mount(r) {
     root = r; draw();
+    /* Zurück-Taste von Android: erst Reiter/Übungsmodus verlassen, dann die Seite */
+    window.vpaBack = function () { if (tab !== 'form') { tab = 'form'; draw(); return true; } if (practice) { practice = false; draw(); return true; } return false; };
     root.addEventListener('input', function (e) { if (e.target.id === 'g-ans') answer = e.target.value; });
     root.addEventListener('change', function (e) { if (tab === 'form' && e.target.id) { readForm(); if (e.target.id === 'f-from' || e.target.id === 'f-to') { autoAlt(); draw(); } else if (e.target.id === 'f-altn') altAuto = ''; } });
     root.addEventListener('click', function (e) {
