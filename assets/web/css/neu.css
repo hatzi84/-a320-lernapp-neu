@@ -549,6 +549,10 @@ body.lay-top .top .search { max-width: 340px; }
 .mc-screen { display: grid; grid-template-rows: repeat(14, var(--lh)); background: #000; border: 0; border-radius: 3px; overflow: hidden; box-sizing: content-box;
   font-family: "Roboto Mono", "DejaVu Sans Mono", "Liberation Mono", Consolas, monospace; font-weight: 500; font-size: 21px; letter-spacing: 0; box-shadow: 0 0 0 2px #15171a; }
 .mc-screen .ln { display: flex; justify-content: space-between; padding: 0 4px; white-space: pre; line-height: var(--lh); min-width: 0; overflow: hidden; }
+.mc-screen .ln.lb, .mc-screen .ln.da { display: grid; grid-template-columns: 1fr auto 1fr; column-gap: 6px; }
+.mc-screen .ln.lb > span:last-child, .mc-screen .ln.da > span:last-child { text-align: right; }
+.mc-screen .ln.lb > span:nth-child(2), .mc-screen .ln.da > span:nth-child(2) { text-align: center; }
+.mc-screen .kw { color: #fff; } .mc-screen .kg { color: #35f27c; } .mc-screen .kc { color: #3de4ff; } .mc-screen .ka { color: #ffa21f; } .mc-screen .km { color: #ff5cf0; } .mc-screen .ky { color: #fff04a; }
 .mc-screen .ti { justify-content: center; color: #fff; font-size: 21px; }
 .mc-screen .ti.amb { color: #ffc400; }
 .mc-screen .lb { color: #fff; font-size: 14px; align-items: flex-end; line-height: 1; padding-bottom: 2px; padding-left: 14px; padding-right: 14px; }
@@ -556,8 +560,8 @@ body.lay-top .top .search { max-width: 340px; }
 .mc-screen .da .cy { color: #3de4ff; } .mc-screen .da .amb { color: #ffc400; }
 .mc-screen .da.cen { justify-content: center; color: #ffc400; font-size: 15px; }
 .mc-screen .scr { color: #fff; justify-content: flex-start; align-items: center; gap: 1px; }
-.mc-screen .scr .msg { color: #ffc400; } .mc-screen .scr .sp { color: #3de4ff; }
-.mc-screen .cur { display: inline-block; width: 11px; height: 19px; background: #3de4ff; animation: bl 1s steps(2) infinite; margin-left: 1px; }
+.mc-screen .scr .msg { color: #fff; } .mc-screen .scr .sp { color: #fff; }
+.mc-screen .cur { display: inline-block; width: 11px; height: 19px; background: #fff; animation: bl 1s steps(2) infinite; margin-left: 1px; }
 .mc-screen .ln.ti small { font-size: 14px; margin-left: 10px; color: #fff; }
 @keyframes bl { 50% { opacity: 0; } }
 .mc-lsk { background: none; border: 0; padding: 0; cursor: default; display: grid; place-items: center; }
