@@ -53,4 +53,40 @@ if not match:
 template = (PATCH / "MainActivity.kt.tmpl").read_text(encoding="utf-8")
 activity.write_text(template.replace("__PACKAGE__", match.group(1)), encoding="utf-8")
 
+# 4) Festen Signaturschlüssel erzwingen (sonst nimmt Gradle bei jedem Bau einen neuen Zufallsschlüssel
+#    und Android lehnt jedes Update mit "Paket steht in Konflikt" ab)
+kts = ANDROID / "app/build.gradle.kts"
+groovy = ANDROID / "app/build.gradle"
+if kts.exists():
+    g = kts.read_text(encoding="utf-8")
+    block = """
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file("../../keystore/debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
+"""
+elif groovy.exists():
+    g = groovy.read_text(encoding="utf-8")
+    block = """
+    signingConfigs {
+        debug {
+            storeFile file("../../keystore/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
+        }
+    }
+"""
+else:
+    sys.exit("build.gradle(.kts) nicht gefunden")
+if "keystore/debug.keystore" not in g:
+    g, n = re.subn(r"(^android\s*\{[^\n]*\n)", lambda m: m.group(1) + block, g, count=1, flags=re.M)
+    if n != 1:
+        sys.exit("android { Block nicht gefunden")
+    (kts if kts.exists() else groovy).write_text(g, encoding="utf-8")
+
 print("Android-Gerüst angepasst:", activity)
