@@ -180,8 +180,10 @@ window.VpAAirbus = (function () {
   function tgSvg(c, x, y) {
     var v = val(c), n = c.pos.length, s = '<g class="ovtg" data-a="tg" data-id="' + c.id + '">';
     for (var i = 0; i < n; i++) { if (!c.pos[i]) continue; var yy = y - 20 + (n === 1 ? 20 : 40 * i / (n - 1)); s += t(x + 18, yy + 3, c.pos[i], 9, 'start', i === v ? 'ovsel' : ''); }
-    var ang = n === 1 ? 0 : -50 + 100 * v / (n - 1);
-    s += '<rect x="' + (x - 14) + '" y="' + (y - 14) + '" width="28" height="28" rx="14" class="ovtbase"/><circle cx="' + x + '" cy="' + y + '" r="9" class="ovtnut"/><g transform="rotate(' + (ang < 0 ? 180 + ang : ang) + ' ' + x + ' ' + y + ')"><rect x="' + (x - 3.5) + '" y="' + y + '" width="7" height="26" rx="3" class="ovtlever"/><circle cx="' + x + '" cy="' + (y + 27) + '" r="5" class="ovtlever"/></g>';
+    /* Kippschalter bewegen sich senkrecht: oben = Hebel nach oben, unten = nach unten, Mitte = Hebel zeigt nach vorn */
+    var mid = n === 3 && v === 1, up = v === 0 && n > 1;
+    s += '<rect x="' + (x - 14) + '" y="' + (y - 14) + '" width="28" height="28" rx="14" class="ovtbase"/><circle cx="' + x + '" cy="' + y + '" r="9" class="ovtnut"/>';
+    s += mid ? '<circle cx="' + x + '" cy="' + y + '" r="6.5" class="ovtlever"/>' : '<g transform="rotate(' + (up ? 180 : 0) + ' ' + x + ' ' + y + ')"><rect x="' + (x - 3.5) + '" y="' + y + '" width="7" height="17" rx="3" class="ovtlever"/><circle cx="' + x + '" cy="' + (y + 18) + '" r="4.5" class="ovtlever"/></g>';
     return s + '</g>';
   }
   function ovhdSvg() {
