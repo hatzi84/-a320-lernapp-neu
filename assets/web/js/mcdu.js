@@ -15,9 +15,10 @@
     flaps: ['FLAPS/THS', 'Klappenstellung und Trimmung für den Start, zum Beispiel 1/UP0.5.'],
     flex: ['FLEX TO TEMP', 'Angenommene Temperatur, mit der der Start mit weniger Schub berechnet wird. Das schont die Triebwerke.'],
     from: ['FROM', 'Der Abflugort ganz oben im Flugplan. Von hier an zählt die Route.'],
-    wp: ['Wegpunkt', 'Ein Wegpunkt der Route. Tippe einen anderen Namen ins Schreibfeld und drücke die Taste neben diesem Eintrag: Der neue Punkt wird davor eingefügt. Mit CLR und dann der Taste löschst du ihn.'],
+    wp: ['Wegpunkt', 'Ein Wegpunkt der Route mit Zeit, Geschwindigkeit und Höhe. Tippe einen neuen Namen und drücke die Taste daneben: Er wird davor eingefügt, danach folgt eine DISCONTINUITY. Steht der Name schon weiter hinten im Plan, fallen die Punkte dazwischen weg. CLR und Taste löscht den Punkt, an seiner Stelle steht dann eine DISCONTINUITY.'],
     'new': ['Freie Zeile', 'Hier hängst du einen weiteren Wegpunkt an das Ende der Route an. Der Name muss in der Datenbank stehen, sonst kommt NOT IN DATABASE.'],
     dest: ['DEST', 'Der Zielflughafen am Ende des Flugplans.'],
+    disco: ['F-PLN DISCONTINUITY', 'Eine Lücke im Flugplan: Hier weiß der Rechner nicht, wie es weitergeht. Tippe einen Wegpunkt und drücke die Taste daneben, dann wird er davor eingefügt. Mit CLR und der Taste löschst du die Lücke, wenn der Plan zusammenhängt.'],
     erase: ['ERASE', 'Verwirft den vorläufigen Flugplan (gelb). Es bleibt der bisherige gültige Flugplan.'],
 
     go: ['Seitenwechsel', 'Mit dieser Taste springst du zur genannten Unterseite. Der Pfeil zeigt die Richtung: < links gehört zur linken, > zur rechten Taste.'],
@@ -30,7 +31,7 @@
     altnf: ['ALTN / TIME', 'Kraftstoff und Zeit bis zum Ausweichflughafen.'],
     final: ['FINAL / TIME', 'Endreserve, meist für 30 Minuten Warteschleife in 1500 ft über dem Ziel.'],
     extra: ['EXTRA / TIME', 'Was nach allen Pflichtreserven übrig bleibt. Negativ heißt: zu wenig Kraftstoff geplant.'],
-    dir: ['DIR TO', 'Direkt zu einem Wegpunkt der Route. Alle Punkte davor werden übersprungen. Das Ergebnis ist ein vorläufiger Plan (gelb), den du mit INSERT übernimmst.'],
+    dir: ['DIR TO', 'Direkt zu einem Wegpunkt. Tippe ihn oder wähle ihn links aus der Liste, dann erscheinen <ERASE und DIRECT TO* (orange). Mit DIRECT TO* gilt der direkte Weg sofort, alle Punkte davor fallen weg.'],
     optfl: ['OPT FL', 'Wirtschaftlich beste Flughöhe für das jetzige Gewicht. Sie steigt, wenn das Flugzeug leichter wird.'],
     recmax: ['REC MAX', 'Höchste empfohlene Flughöhe. Höher fliegt man mit wenig Reserve zum Buffet.'],
     prog_to: ['TO', 'Der nächste Wegpunkt mit Abstand und Zeit. Hier prüfst du im Flug, ob du auf Plan liegst.'],
@@ -85,9 +86,10 @@
   /* Übergangshöhen je Flughafen (Werte der Übungsdatenbank, Stand der jeweiligen AIP nicht geprüft) */
   var TA = { EDDF: '5000', EDDM: '5000', EDDH: '5000', EDDB: '5000', EDDL: '5000', EDDK: '5000', EDDS: '5000', EDDV: '5000', EDDN: '5000', EDDW: '5000', EDDP: '5000', EDDC: '5000', EDDG: '5000', EDLW: '5000', EDSB: '5000',
     LOWW: '10000', LSZH: '7000', EHAM: '3000', LFPG: '5000', EGLL: '6000', EKCH: '5000', LEMD: '13000', LIRF: '7000', ESSA: '5000' };
+  var DISCO = 'DISCO';
   function pad2(n) { return (n < 10 ? '0' : '') + n; }
   function routeDist(S) {
-    var ids = []; if (S.v.from) ids.push(S.v.from); (S.tmp || S.route).forEach(function (i) { ids.push(i); }); if (S.v.to) ids.push(S.v.to);
+    var ids = []; if (S.v.from) ids.push(S.v.from); (S.tmp || S.route).forEach(function (i) { if (i !== DISCO) ids.push(i); }); if (S.v.to) ids.push(S.v.to);
     if (ids.length < 2) return 0; var t = 0; for (var i = 1; i < ids.length; i++) { var d = dist(ids[i - 1], ids[i]); if (d == null) return 0; t += d; } return t;
   }
   function validate(f, s) {
@@ -113,7 +115,7 @@
     if (f === 'thrga') return /^\d{3,4}\/\d{3,4}$/.test(s) ? s : null;
     if (f === 'enaga') return /^\d{3,4}$/.test(s) ? s : null;
     if (f === 'block') return /^\d{1,2}\.\d$/.test(s) ? s : null;
-    if (f === 'dir') return DB[s] && !DB[s].apt ? s : null;
+    if (f === 'dir') return DB[s] ? s : null;
     if (f === 'vor1' || f === 'vor2') return /^1(0[89]|1[0-7])\.\d{2}$/.test(s) ? s : null;
     if (f === 'crs1' || f === 'crs2' || f === 'ilscrs') return /^\d{3}$/.test(s) && +s <= 360 ? s : null;
     if (f === 'ils') return /^1(0[89]|1[01])\.\d{2}$/.test(s) ? s : null;
@@ -131,13 +133,32 @@
     return null;
   }
 
+  /* Einträge der F-PLN-Seite: FROM, Wegpunkte und Diskontinuitäten, DEST, Ende des Plans und Alternate */
   function fplnEntries(S) {
-    var list = S.tmp || S.route, e = [];
+    var e = [];
     e.push({ k: 'from', id: S.v.from || '----' });
-    list.forEach(function (id, i) { e.push({ k: 'wp', id: id, idx: i }); });
-    e.push({ k: 'new', id: '-----' });
-    e.push({ k: 'dest', id: S.v.to || '----' });
+    S.route.forEach(function (id, i) { e.push(id === DISCO ? { k: 'disco', idx: i } : { k: 'wp', id: id, idx: i }); });
+    e.push({ k: 'dest', id: S.v.to || '----', idx: S.route.length });
+    if (S.v.altn) { e.push({ k: 'end', t: '------END OF F-PLN------' }); e.push({ k: 'altn', id: S.v.altn }); e.push({ k: 'end', t: '---END OF ALTN F-PLN---' }); }
+    else { e.push({ k: 'end', t: '------END OF F-PLN------' }); e.push({ k: 'end', t: '-----NO ALTN F-PLN-----' }); }
     return e;
+  }
+  /* Vorhersage je Punkt (Näherung): Steigflug etwa 3,6 NM je 1000 ft, Sinkflug etwa 3,1 NM, im Mittel 420 kt */
+  function predict(S, en) {
+    var crz = S.v.crz ? +S.v.crz.slice(2) * 100 : 0, ok = !!(S.v.from && S.v.to && crz && DB[S.v.from] && DB[S.v.to]);
+    var cum = 0, prev = null, out = [];
+    en.forEach(function (x) { if (x.k === 'from' || x.k === 'wp' || x.k === 'dest') { if (prev && DB[prev] && DB[x.id]) cum += dist(prev, x.id); prev = x.id; x.cum = cum; } });
+    var total = cum, ta = +(S.v.trans || TA[S.v.from] || 5000);
+    en.forEach(function (x) {
+      if (x.cum == null || !ok) { x.pt = '----'; x.ps = '---/-----'; return; }
+      var d = x.cum, alt = Math.max(0, Math.min(crz, d * crz / (crz / 1000 * 3.6), (total - d) * crz / (crz / 1000 * 3.1))), t = d < 1 ? 0 : Math.round(d / 7 + 4 * Math.min(1, d / 40));
+      x.pt = pad2(Math.floor(t / 60)) + pad2(t % 60);
+      if (x.k === 'from') { var e0 = DB[S.v.from].elev || 0; x.ps = (S.v.v1 || '---') + '/' + ('     ' + e0).slice(-5); return; }
+      if (x.k === 'dest') { var e1 = DB[S.v.to].elev || 0; x.ps = '---/' + ('     ' + e1).slice(-5); return; }
+      var a = alt > ta ? 'FL' + ('00' + Math.round(alt / 100)).slice(-3) : ('     ' + Math.round(alt / 10) * 10).slice(-5);
+      x.ps = (alt < 10000 ? '250' : crz > 28000 && alt > 28000 ? '.78' : '290') + '/' + a;
+    });
+    return total;
   }
 
   function pages(S) {
@@ -188,10 +209,6 @@
       { l: 'ALTN/TIME', ld: ready && altF ? altF.toFixed(1) + '/' + fmt(altT) : '---.-/----', lc: 'c', r: 'TOW/LW', rd: ready ? (zfwN + blk - taxiF).toFixed(1) + '/' + (zfwN + blk - taxiF - trip).toFixed(1) : '---.-/---.-' },
       { l: 'FINAL/TIME', ld: ready ? finF.toFixed(1) + '/0030' : '---.-/0030', lc: 'c', r: 'TRIP WIND', rd: 'HD000', rc: 'c' },
       { l: 'MIN DEST FOB', ld: ready ? (altF + finF).toFixed(1) : '---.-', lc: 'c', r: 'EXTRA/TIME', rd: ready ? extra.toFixed(1) + '/' + (extra > 0 ? fmt(Math.round(extra / 2.4 * 60)) : '----') : '---.-/----', rc: extra != null && extra < 0 ? 'a' : 'g' }
-    ] };
-    P.dir = { title: 'DIR TO', rows: [
-      { l: 'WAYPOINT', ld: '[    ]', lk: 'dir', lin: true, r: '', rd: '' },
-      RD(), RD(), RD(), RD(), RD()
     ] };
     var pto = v.progto && DB[v.progto] && v.from ? DB[v.progto] : null, pbrg = pto ? window.VpANav.bearing(v.from, v.progto) : null;
     P.prog = { title: 'PREFLIGHT', sub: v.flt || '', rows: [
@@ -272,19 +289,30 @@
       { l: 'VAPP', ld: vapp, lk: 'vapp', m: 'VLS', md: String(vls), r: '', rd: v.ldgconf === 'CONF3' ? 'FULL*' : 'FULL', rk: 'ldgfull', rc: v.ldgconf === 'CONF3' ? 'w' : 'c' }]);
     P['perf-ga'] = phase(5, [{ l: '', ld: '', r: '', rd: '' }, { l: '', ld: '', r: '', rd: '' }, { l: '', ld: '', r: '', rd: '' }, { l: '', ld: '', r: '', rd: '' },
       { l: 'THR RED/ACC', ld: v.thrga || (accDefA ? accDefA + '/' + accDefA : '[    ]/[    ]'), lk: 'thrga', r: 'ENG OUT ACC', rd: v.enaga || accDefA || '[    ]', rk: 'enaga' }]);
-    /* F-PLN: fünf Zeilen Liste, sechste Zeile ERASE/INSERT bei vorläufigem Plan */
-    var en = fplnEntries(S), rows = [], i;
-    var prevId = null;
-    en.forEach(function (x, k) { x.prev = k > 0 ? en[k - 1].id : null; });
+    /* F-PLN (FBW-Doku): Zeilen 1-5 Punkte mit TIME und SPD/ALT, dazwischen Strecke, Zeile 6 DEST mit Zeit, Distanz und EFOB */
+    var en = fplnEntries(S), ftot = predict(S, en), rows = [], i, lastWp = null;
+    en.forEach(function (x, k) { if (x.k === 'wp' || x.k === 'dest' || x.k === 'from') { x.leg = lastWp && DB[lastWp] && DB[x.id] ? Math.round(dist(lastWp, x.id)) : null; x.brg = lastWp && DB[lastWp] && DB[x.id] ? window.VpANav.bearing(lastWp, x.id) : null; lastWp = x.id; } x.n = k; });
+    var deg = function (b) { return ('00' + Math.round(b)).slice(-3) + '°'; };
     for (i = 0; i < 5; i++) {
       var x = en[S.scroll + i];
       if (!x) { rows.push({ l: '', ld: '', r: '', rd: '' }); continue; }
-      var d = x.prev && x.k !== 'new' && x.prev !== '-----' ? dist(x.prev === '-----' ? null : x.prev, x.id) : null;
-      if (x.k === 'dest') { var last = en[S.scroll + i - 1]; var lid = last && last.k === 'new' ? en[S.scroll + i - 2] : last; d = lid ? dist(lid.id, x.id) : null; }
-      rows.push({ l: x.k === 'from' ? 'FROM' : x.k === 'dest' ? 'DEST' : x.k === 'new' ? '' : 'DCT', ld: x.id, lk: 'fp' + i, lin: x.k === 'new', fe: x, r: d != null ? 'DIST' : '', rd: d != null ? d + 'NM' : '' });
+      var lab = i === 0 ? { l: x.k === 'from' ? 'FROM' : '', m: 'TIME', r: 'SPD/ALT' } : { l: x.brg != null && x.n === 1 ? 'BRG' + deg(x.brg) : x.brg != null && x.n === 2 ? 'TRK' + deg(x.brg) : '', m: x.leg != null ? x.leg + 'NM' : '', r: '' };
+      if (x.k === 'disco' || x.k === 'end') { rows.push({ l: lab.l, m: '', r: i === 0 ? lab.r : '', c: x.k === 'disco' ? '---F-PLN DISCONTINUITY--' : x.t, lk: x.k === 'disco' ? 'fp' + i : null, fe: x }); continue; }
+      if (x.k === 'altn') { rows.push({ l: '', m: '', r: '', ld: x.id, lc: 'c', md: '', rd: '', fe: x, lk: 'fp' + i }); continue; }
+      rows.push({ l: lab.l, m: lab.m, r: lab.r, ld: x.id, lc: x.n === 1 ? 'w' : 'g', lk: 'fp' + i, fe: x, md: x.pt, rd: x.ps, rc: 'g' });
     }
-    rows.push(S.tmp ? { l: '', ld: '<ERASE', lk: 'erase', lamb: true, r: '', rd: 'INSERT*', rk: 'insert', ramb: true } : { l: '', ld: '', r: '', rd: '' });
-    P.fpln = { title: S.tmp ? 'TMPY' : 'F-PLN', tmp: !!S.tmp, rows: rows };
+    var dEnd = en.filter(function (x) { return x.k === 'dest'; })[0];
+    rows.push({ l: 'DEST', m: 'TIME', r: 'DIST  EFOB', ld: v.to || '----', lc: 'w', md: dEnd && dEnd.pt || '----', mc: 'w', rd: (ftot ? Math.round(ftot) : '----') + '  ' + (ready ? efob : '--.-'), rc: 'w' });
+    P.fpln = { title: v.flt || '', rows: rows };
+    var dl = S.route.filter(function (r) { return r !== DISCO; }).concat(v.to ? [v.to] : []);
+    P.dir = { title: 'DIR TO', rows: [
+      { l: 'DIR TO', ld: S.dirSel || '[     ]', lk: 'dir', lc: 'c', r: 'WITH', rd: '' },
+      { l: 'F-PLN WPTS', ld: dl[0] || '', lk: dl[0] ? 'dw0' : null, lc: 'w', r: '', rd: 'DIRECT TO', rc: 'c' },
+      { l: '', ld: dl[1] || '', lk: dl[1] ? 'dw1' : null, lc: 'w', r: '', rd: 'ABEAM PTS→', rk: 'na', rc: 'w' },
+      { l: '', ld: dl[2] || '', lk: dl[2] ? 'dw2' : null, lc: 'w', r: 'RADIAL IN', rd: '[ ]°', rk: 'na', rc: 'c' },
+      { l: '', ld: dl[3] || '', lk: dl[3] ? 'dw3' : null, lc: 'w', r: 'RADIAL OUT', rd: '[ ]°', rk: 'na', rc: 'c' },
+      S.dirSel ? { l: '', ld: '<ERASE', lk: 'dirx', lc: 'a', r: 'DIRECT', rd: 'TO*', rk: 'dirgo', rc: 'a' } : { l: '', ld: '', r: '', rd: '' }
+    ] };
     return P;
   }
 
@@ -333,6 +361,7 @@
       return '<span class="k' + col + '">' + esc(t) + '</span>';
     }
     function render() {
+      S.seen = S.seen || {}; S.seen[S.page] = 1;
       var P = pages(S), pg = P[S.page], h = '';
       if (!pg) {
         h += '<div class="ln ti">' + esc(S.page.toUpperCase()) + '</div><div class="ln"></div><div class="ln da cen"><span>IM ENTWURF NICHT NACHGEBILDET</span></div>';
@@ -341,6 +370,7 @@
         h += '<div class="ln ti' + (pg.tmp ? ' amb' : '') + '">' + esc(pg.title) + (pg.sub ? '<small>' + esc(pg.sub) + '</small>' : '') + '</div>';
         pg.rows.forEach(function (r) {
           h += '<div class="ln lb"><span>' + esc(r.l) + '</span><span>' + esc(r.m || '') + '</span><span>' + esc(r.r) + '</span></div>';
+          if (r.c != null) { h += '<div class="ln da"><span class="kw" style="grid-column:1/-1;text-align:center">' + esc(r.c) + '</span></div>'; return; }
           h += '<div class="ln da">' + cell(r.ld, r.lc || (r.lamb ? 'a' : r.lin ? 'c' : ''), r.lk) + cell(r.md || '', r.mc || 'g') + cell(r.rd, r.rc || (r.ramb ? 'a' : r.rin ? 'c' : ''), r.rk) + '</div>';
         });
       }
@@ -376,22 +406,27 @@
       var p = S.plan;
       if (!p) { S.msg = 'KEIN PLAN GELADEN'; render(); return; }
       S.v.from = p.from; S.v.to = p.to; S.v.flt = p.flt; S.v.ci = p.ci; S.v.crz = p.crz; if (p.altn) S.v.altn = p.altn;
-      S.tmp = p.route.slice(); S.scroll = 0; S.msg = 'PLAN GELADEN · F-PLN: INSERT'; S.expl = 'req'; render();
+      S.route = p.route.slice(); S.tmp = null; S.scroll = 0; S.msg = ''; S.expl = 'req'; render();
     }
     function fpSel(i) {
       var P = pages(S), r = P.fpln.rows[i]; if (!r || !r.fe) return;
-      var e = r.fe, list = (S.tmp || S.route).slice();
-      S.expl = e.k;
+      var e = r.fe, list = S.route.slice();
+      S.expl = e.k === 'disco' ? 'disco' : e.k;
+      var tidy = function (l) { var o = []; l.forEach(function (x) { if (x === DISCO && o[o.length - 1] === DISCO) return; o.push(x); }); return o; };
       if (S.sp === 'CLR') {
-        if (e.k !== 'wp') { S.msg = 'NOT ALLOWED'; S.sp = ''; render(); return; }
-        list.splice(e.idx, 1); S.tmp = list; S.sp = ''; render(); return;
+        if (e.k === 'wp') list[e.idx] = DISCO;
+        else if (e.k === 'disco') list.splice(e.idx, 1);
+        else { S.msg = 'NOT ALLOWED'; S.sp = ''; render(); return; }
+        S.route = tidy(list); S.sp = ''; S.msg = ''; render(); return;
       }
       if (!S.sp) { render(); return; }
       var id = S.sp.trim();
-      if (!DB[id]) { S.msg = 'NOT IN DATABASE'; S.sp = ''; render(); return; }
-      if (e.k === 'from') { S.msg = 'NOT ALLOWED'; S.sp = ''; render(); return; }
-      if (e.k === 'wp') list.splice(e.idx, 0, id); else list.push(id);
-      S.tmp = list; S.sp = ''; render();
+      if (e.k === 'from' || e.k === 'end' || e.k === 'altn') { S.msg = 'NOT ALLOWED'; render(); return; }
+      if (!DB[id]) { S.msg = 'NOT IN DATABASE'; render(); return; }
+      var t = e.idx, j = id === S.v.to ? list.length : list.indexOf(id, t);
+      if (j >= t) list.splice(t, j - t);
+      else { list.splice(t, 0, id); if (e.k !== 'disco' && list[t + 1] !== DISCO) list.splice(t + 1, 0, DISCO); }
+      S.route = tidy(list); S.sp = ''; S.msg = ''; render();
     }
     function sk(side, n) {
       var P = pages(S), pg = P[S.page]; if (!pg) return;
@@ -410,6 +445,9 @@
       if (f === 'secact') { var old = S.route; S.route = (S.sec || []).slice(); S.sec = old.slice(); S.msg = 'SEC AKTIVIERT'; render(); return; }
       if (f === 'optfl' || f === 'recmax' || f === 'prog_to' || f === 'efob') { render(); return; }
       if (f === 'req') { loadPlan(); return; }
+      if (/^dw\d$/.test(f)) { var dl2 = S.route.filter(function (r) { return r !== DISCO; }).concat(S.v.to ? [S.v.to] : []); S.dirSel = dl2[+f.slice(2)]; S.expl = 'dir'; S.msg = ''; render(); return; }
+      if (f === 'dirx') { S.dirSel = null; S.expl = 'dir'; render(); return; }
+      if (f === 'dirgo') { var sel = S.dirSel, ix = S.route.indexOf(sel); if (sel === S.v.to) S.route = []; else if (ix >= 0) S.route = S.route.slice(ix); else S.route = [sel, DISCO].concat(S.route); S.dirSel = null; S.page = 'fpln'; S.scroll = 0; S.expl = 'dir'; render(); return; }
       if (f === 'ldg3') { S.v.ldgconf = 'CONF3'; S.msg = ''; render(); return; }
       if (f === 'ldgfull') { S.v.ldgconf = 'FULL'; S.msg = ''; render(); return; }
       if (f === 'zfw' && !S.sp) { var pz = S.plan; if (!pz || pz.zfwT == null) { S.msg = 'KEIN PLAN GELADEN'; render(); return; } S.sp = pz.zfwT + '/' + pz.zfwCg; S.msg = ''; render(); return; }
@@ -426,10 +464,10 @@
       if (!S.sp) { render(); return; }
       var val = validate(f, S.sp);
       if (val == null) { S.msg = 'FORMAT ERROR'; render(); return; }
-      if (f === 'dir') { var cur = (S.tmp || S.route).slice(), ix = cur.indexOf(val); if (ix < 0) { S.msg = 'NOT IN FLIGHT PLAN'; render(); return; } S.tmp = cur.slice(ix); S.sp = ''; S.page = 'fpln'; S.msg = 'DIR TO · INSERT?'; render(); return; }
+      if (f === 'dir') { S.dirSel = val; S.sp = ''; S.msg = ''; render(); return; }
       if (f === 'route' && (!DB[val.from] || !DB[val.to] || !DB[val.from].apt || !DB[val.to].apt)) { S.msg = 'NOT IN DATABASE'; render(); return; }
       if (f === 'altn' && !(DB[val] && DB[val].apt)) { S.msg = 'NOT IN DATABASE'; render(); return; }
-      if (f === 'route') { S.v.from = val.from; S.v.to = val.to; } else S.v[f] = val;
+      if (f === 'route') { if (val.from !== S.v.from || val.to !== S.v.to) { S.route = [DISCO]; S.tmp = null; S.scroll = 0; } S.v.from = val.from; S.v.to = val.to; } else S.v[f] = val;
       S.sp = ''; S.msg = ''; render();
     }
     root.addEventListener('click', function (e) {
@@ -455,7 +493,7 @@
     render();
     return {
       state: S, render: render,
-      reset: function () { S.page = opt.page || 'init'; S.sp = ''; S.msg = ''; S.v = {}; S.expl = null; S.route = []; S.tmp = null; S.scroll = 0; render(); },
+      reset: function () { S.page = opt.page || 'init'; S.sp = ''; S.msg = ''; S.v = {}; S.expl = null; S.route = []; S.tmp = null; S.scroll = 0; S.dirSel = null; S.seen = {}; render(); },
       setPlan: function (p) { S.plan = p; render(); },
       type: function (str) { str.split('').forEach(function (c) { press(c === ' ' ? 'SP' : c); }); },
       go: function (p) { S.page = p; S.scroll = 0; render(); }
@@ -490,7 +528,7 @@
         h += '<polyline points="' + pts(po).join(' ') + '" fill="none" stroke="#5b6c78" stroke-width="2" stroke-dasharray="4 6"/>';
       }
       var act = full({ v: S.v, route: S.route, tmp: null });
-      if (S.v.from && S.v.to && act.length > 1) h += '<polyline points="' + pts(act).join(' ') + '" fill="none" stroke="#4ce38a" stroke-width="3"/>';
+      if (S.v.from && S.v.to && act.length > 1) { var segs = [[]]; act.forEach(function (i) { if (i === DISCO) segs.push([]); else segs[segs.length - 1].push(i); }); segs.forEach(function (sg) { if (sg.length > 1) h += '<polyline points="' + pts(sg).join(' ') + '" fill="none" stroke="#4ce38a" stroke-width="3"/>'; }); }
       if (S.tmp && S.v.from && S.v.to) h += '<polyline points="' + pts(full(S)).join(' ') + '" fill="none" stroke="#ffb347" stroke-width="3" stroke-dasharray="8 5"/>';
       var shown = {};
       (plan ? [plan.from].concat(plan.route, [plan.to]) : []).forEach(function (i) { shown[i] = 'p'; });
@@ -502,7 +540,7 @@
         h += '<text x="' + (cx + 10) + '" y="' + (cy + 4) + '" fill="' + (on ? '#f2f6fa' : '#7b8c98') + '" font-size="11">' + i + '</text>';
       });
       if (!S.v.from || !S.v.to) h += '<text x="200" y="210" text-anchor="middle" fill="#7b8c98" font-size="13">Noch kein Flugplan eingegeben</text>';
-      h += '<text x="14" y="388" fill="#7b8c98" font-size="11">grau gestrichelt: Plan · grün: gültig · gelb: vorläufig</text></svg>';
+      h += '<text x="14" y="388" fill="#7b8c98" font-size="11">grau gestrichelt: Plan aus dem Planer · grün: aktiver Flugplan</text></svg>';
       box.innerHTML = h;
     }
     return { update: update };
