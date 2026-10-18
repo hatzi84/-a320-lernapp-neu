@@ -46,17 +46,24 @@ class LernApp extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 Future<String> loadToken() async {
-  final p = await SharedPreferences.getInstance();
-  return p.getString('gh_token') ?? '';
+  // Der Schlüssel ist optional (Repo ist öffentlich). Fehler hier dürfen die Update-Suche nie verhindern.
+  try {
+    final p = await SharedPreferences.getInstance();
+    return p.getString('gh_token') ?? '';
+  } catch (_) {
+    return '';
+  }
 }
 
 Future<void> saveToken(String t) async {
-  final p = await SharedPreferences.getInstance();
-  if (t.isEmpty) {
-    await p.remove('gh_token');
-  } else {
-    await p.setString('gh_token', t);
-  }
+  try {
+    final p = await SharedPreferences.getInstance();
+    if (t.isEmpty) {
+      await p.remove('gh_token');
+    } else {
+      await p.setString('gh_token', t);
+    }
+  } catch (_) {}
 }
 
 class UpdateInfo {
