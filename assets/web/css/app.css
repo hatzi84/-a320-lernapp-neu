@@ -113,3 +113,39 @@ html[data-update] .tabbar .upd::after { content: ""; position: absolute; top: 10
 .abovh.fix .abp h4 { background: #4b6077; }
 .ovhalf { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; }
 @media (max-width: 600px) { .abbar { gap: 6px; margin-bottom: 8px; } .abbar .btn { min-height: 36px; padding: 0 10px; font-size: 13px; } .ovz { margin-left: 0; gap: 4px; } .ovz .btn { min-width: 34px; } .abnote { font-size: 11px; margin-top: 6px; } }
+
+/* Overhead-Zeichnung: Farben nach Fotos des echten A320 */
+.ovsvg { display: block; font-family: Arial, Helvetica, sans-serif; }
+.ovsvg text { fill: #f2f5f8; font-weight: 700; letter-spacing: .02em; }
+.ovsvg .ovbg { fill: #2a3138; }
+.ovsvg .ovpnl { fill: #5a7086; stroke: #3c4d5e; stroke-width: 2; }
+.ovsvg .ovscr { fill: #3e4c5a; stroke: #2a343e; stroke-width: 1; } .ovsvg .ovslot { stroke: #1e262e; stroke-width: 1.4; }
+.ovsvg .ovsyn { fill: none; stroke: #6ee38c; stroke-width: 3; stroke-linecap: square; }
+.ovsvg .ovbox { fill: none; stroke: #f2f5f8; stroke-width: 1.4; }
+.ovsvg .ovtitle { font-size: 13px; } .ovsvg .ovlab { font-size: 9px; } .ovsvg .ovsmall { font-size: 8px; fill: #dfe6ec; } .ovsvg .ovside { font-size: 13px; }
+.ovsvg .ovsel { fill: #fff; } .ovsvg .vert { writing-mode: vertical-rl; }
+.ovsvg .ovbez { fill: #1c1f22; stroke: #9aa7b3; stroke-width: 1.2; }
+.ovsvg .ovcap { fill: #111315; stroke: #000; stroke-width: 1; }
+.ovsvg .ovleg { fill: #16181a; stroke: none; } .ovsvg .ovleg.ovfr { stroke: #2b3036; stroke-width: 1; }
+.ovsvg .ovlt { font-size: 8px; fill: #3a3f44; font-weight: 700; }
+.ovsvg .ovleg.lit.ka { fill: #3a2600; } .ovsvg .ovlt.lit.ka { fill: #ffb020; filter: drop-shadow(0 0 3px #ff9a00); }
+.ovsvg .ovleg.lit.kw { fill: #1b1d1f; stroke: #e8edf2; stroke-width: 1; } .ovsvg .ovlt.lit.kw { fill: #f4f7fa; filter: drop-shadow(0 0 2px #fff); }
+.ovsvg .ovleg.lit.kb { fill: #021c2a; stroke: #3cc8ff; stroke-width: 1.2; } .ovsvg .ovlt.lit.kb { fill: #3cc8ff; filter: drop-shadow(0 0 3px #19b6ff); }
+.ovsvg .ovleg.lit.kg { fill: #062814; stroke: #4ef08a; stroke-width: 1; } .ovsvg .ovlt.lit.kg { fill: #4ef08a; filter: drop-shadow(0 0 3px #2fe070); }
+.ovsvg .ovleg.lit.kr { fill: #3a0606; } .ovsvg .ovlt.lit.kr { fill: #ff4a3a; }
+.ovsvg .ovgr { fill: #d7261e; stroke: #7c1210; stroke-width: 1.5; opacity: .96; } .ovsvg .ovgr.grid { fill: #b0201a; }
+.ovsvg .ovgb { fill: #2a2c2f; stroke: #000; stroke-width: 1.5; opacity: .96; } .ovsvg .ovgline { stroke: #111; stroke-width: 3; }
+.ovsvg .ovfire { fill: #c8231b; stroke: #5d0e0b; stroke-width: 3; } .ovsvg .ovfire.on { fill: #ff3d2e; }
+.ovsvg .ovfirew { fill: #8d1611; } .ovsvg .ovfiret { fill: #2b0504; font-size: 20px; } .ovsvg .ovfiret2 { fill: #2b0504; font-size: 10px; } .ovsvg .ovfirering { fill: none; stroke: #c8231b; stroke-width: 4; }
+.ovsvg .ovround { fill: #26292d; stroke: #8f9aa5; stroke-width: 1.5; } .ovsvg .ovround2 { fill: #0e1012; }
+.ovsvg .ovkbase { fill: #3b4652; stroke: #253039; stroke-width: 2; } .ovsvg .ovkhead { fill: #d7d9d6; stroke: #8b8f8c; stroke-width: 1.2; } .ovsvg .ovkmark { stroke: #22262a; stroke-width: 3; } .ovsvg .ovdot { fill: #f2f5f8; }
+.ovsvg .ovtbase { fill: #2a2e33; stroke: #8a949e; stroke-width: 1.5; } .ovsvg .ovtnut { fill: #1a1d20; stroke: #6b737b; } .ovsvg .ovtlever { fill: #c9ced3; stroke: #6f767c; stroke-width: 1; }
+.ovsvg .ovds { fill: #050505; stroke: #39424b; stroke-width: 2; } .ovsvg .ovdst { fill: #ff9f1a; font-family: "Courier New", monospace; font-size: 16px; }
+.ovsvg [data-a] { cursor: pointer; }
+
+/* Beleuchtung: Instrumentenbeleuchtung lässt die Beschriftung leuchten, Deckenlicht hellt das Panel auf */
+.ovsvg .ovpnl { transition: fill .3s; } .ovsvg text { transition: fill .3s; }
+.ovsvg.integ text:not(.ovlt):not(.ovdst):not(.ovfiret):not(.ovfiret2) { fill: #ffd9a8; }
+.ovsvg.integ.i3 text:not(.ovlt):not(.ovdst):not(.ovfiret):not(.ovfiret2) { fill: #ffe9c8; filter: drop-shadow(0 0 2px rgba(255, 170, 80, .8)); }
+.ovsvg.integ .ovbox { stroke: #ffd9a8; }
+.ovsvg:not(.dome) .ovpnl { fill: #4d6074; } .ovsvg.dome.d2 .ovpnl { fill: #6a8198; }

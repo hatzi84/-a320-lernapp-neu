@@ -92,3 +92,9 @@ keystore/debug.keystore  fester Signaturschlüssel (bewusst im Repo, Hobby-Schl�
 - Kleine, testbare Schritte. Nach jedem Schritt dem Nutzer kurz sagen, was er auf dem Gerät prüfen soll, und konkrete Tippschritte nennen (er arbeitet am Handy, nutzt die deutsche GitHub-Oberfläche).
 - Nichts committen oder veröffentlichen, was nicht zur App gehört. Keine Schlüssel oder Zugangsdaten in den Chat oder ins Repo schreiben.
 - Dieser Übergabe-Chat ist getrennt vom Chat für die Tablet-Software und die Design-Ideen. Dort wird `a320-tablet-panel` weitergeführt.
+
+## Overhead als Zeichnung (Stand Oktober 2026)
+- Panel → Overhead ist jetzt eine SVG-Zeichnung (`ovhdSvg()` in `assets/web/js/tablet-airbus.js`, Fläche 1569 × 1212), Lage der Schalter nach echten A320-Fotos (Wikimedia Commons) und einer Vorlage des Nutzers. Fotos/Bilder werden NICHT eingebettet, nur nachgezeichnet.
+- Grüne Systemlinien (HYD, FUEL, ELEC, AIR COND), Leuchtfelder in echten Farben, rote Schutzkappen, Batterie-Anzeigen.
+- Beleuchtung: OVHD INTEG LT lässt die Beschriftung leuchten, DOME hellt das Panel auf (nur mit Strom).
+- Verschieben mit einem Finger, Zoomen mit zwei; Knöpfe Ganz/Links/Mitte/Rechts.

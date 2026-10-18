@@ -45,6 +45,8 @@ window.VpAAirbus = (function () {
     ]
   };
 
+  OVERHEAD.extra = [P('', [[pb('IRPB1', 'IR 1', { f: 1, f2: 'ALIGN' }), pb('IRPB3', 'IR 3', { f: 1 }), pb('IRPB2', 'IR 2', { f: 1 }), pb('COMM', 'COMMERCIAL', { m: 'off', def: 1 })]])];
+
   /* ---------- Vorgabewerte (Beispiele für Voreinstellungen) ---------- */
   var PRESET = {
     cold: { S: { BAT1: 0, BAT2: 0, EXT: 0, GEN1: 1, GEN2: 1, APUGEN: 1, IR1: 0, IR2: 0, IR3: 0, LTK1: 0, LTK2: 0, CTK1: 0, CTK2: 0, RTK1: 0, RTK2: 0, APUM: 0, APUS: 0, STROBE: 2, BEACON: 1, SEATBELT: 1 }, F: {} },
@@ -108,10 +110,109 @@ window.VpAAirbus = (function () {
   function panelH(p) { return '<section class="abp ' + (p.cls || '') + '">' + (p.t ? '<h4>' + esc(p.t) + '</h4>' : '') + p.rows.map(function (r) { return '<div class="abrow">' + r.map(itemH).join('') + '</div>'; }).join('') + '</section>'; }
   function col(a) { return '<div class="abcol">' + a.map(panelH).join('') + '</div>'; }
 
+  /* ---------- Overhead als maßstabsgetreue Zeichnung (Koordinaten nach Vorlage 1569 × 1212 px) ---------- */
+  var OW = 1569, OH = 1212;
+  /* Panels: [x, y, Breite, Höhe] */
+  var PNL = [[6, 58, 334, 84], [6, 146, 334, 236], [6, 386, 334, 60], [6, 450, 334, 86], [6, 540, 334, 82], [6, 626, 334, 88], [6, 718, 334, 78], [6, 800, 334, 64], [6, 868, 334, 78], [6, 950, 334, 78], [6, 1032, 334, 168],
+    [346, 30, 816, 122], [346, 156, 816, 134], [346, 294, 816, 102], [346, 400, 816, 124], [346, 528, 816, 190], [346, 722, 816, 206], [350, 932, 812, 92], [350, 1028, 378, 172], [732, 1028, 72, 172], [808, 1028, 354, 172],
+    [1168, 12, 368, 148], [1168, 164, 368, 152], [1168, 320, 368, 196], [1180, 520, 356, 86], [1184, 610, 352, 122], [1184, 736, 352, 96], [1184, 836, 352, 80], [1184, 920, 352, 96], [1184, 1020, 352, 150]];
+  /* Platz je Bedienelement: id -> [x, y] Mitte */
+  var POS = { PA: [140, 112], DOORVID: [272, 112], IRPB1: [74, 226], IRPB3: [172, 226], IRPB2: [272, 226], IR1: [74, 298], IR3: [172, 298], IR2: [272, 298], ADR1: [74, 354], ADR3: [172, 354], ADR2: [272, 354],
+    ELAC1: [146, 512], SEC1: [210, 512], FAC1: [274, 512], EVACCMD: [133, 596], HORN: [211, 596], CAPT: [256, 594], EGENTEST: [58, 682], GEN1LINE: [134, 682], RATMAN: [232, 680],
+    TERR: [50, 774], GPWSSYS: [114, 773], GSMODE: [180, 772], FLAPMODE: [236, 771], LDGFLAP3: [292, 770], GNDCTL: [130, 838], CVRERASE: [208, 834], CVRTEST: [284, 830],
+    MASKMAN: [127, 916], PAXOXY: [208, 918], CREWOXY: [289, 914], CALLMECH: [50, 1000], CALLALL: [112, 998], CALLFWD: [172, 996], CALLAFT: [234, 994], CALLEMER: [290, 990], RPLNTL: [124, 1074], WIPERL: [258, 1088],
+    ENG1AG1: [406, 204], ENG1FIRE: [518, 224], ENG1AG2: [630, 198], FIRETEST1: [406, 266], APUFIRE: [752, 198], APUAG: [697, 266], FIRETESTA: [813, 258], ENG2AG1: [877, 192], ENG2FIRE: [992, 218], ENG2AG2: [1104, 186], FIRETEST2: [1104, 266],
+    HYDG: [517, 380], HYDRAT: [634, 374], HYDBE: [758, 374], PTU: [880, 338], HYDY2: [1000, 368], HYDYE: [1086, 360],
+    LTK1: [486, 492], LTK2: [550, 490], CTK1: [690, 488], XFEED: [760, 430], FUELMODE: [762, 494], CTK2: [833, 486], RTK1: [968, 482], RTK2: [1038, 480],
+    COMM: [441, 560], GALLEY: [441, 621], BAT1: [721, 566], BAT2: [762, 566], ACESS: [930, 578], IDG1: [442, 684], GEN1: [527, 684], APUGEN: [662, 682], BUSTIE: [765, 660], EXT: [866, 670], GEN2: [1007, 672], IDG2: [1090, 670],
+    PACKFLOW: [455, 786], TCOCK: [640, 780], TFWD: [767, 778], TAFT: [893, 774], HOTAIR: [1075, 766], PACK1: [430, 856], PACK2: [1108, 828], BLEED1: [530, 892], RAMAIR: [656, 888], APUBLEED: [770, 888], XBLEED: [895, 888], BLEED2: [1013, 882],
+    AIWING: [419, 990], AIENG1: [585, 988], AIENG2: [662, 986], PROBE: [772, 982], VSCTL: [876, 994], CPMODE: [948, 988], LDGELEV: [1040, 984], DITCH: [1127, 974],
+    STROBE: [415, 1086], BEACON: [492, 1088], WINGLT: [576, 1088], NAVLOGO: [671, 1084], RWYTO: [423, 1160], LANDL: [499, 1162], LANDR: [588, 1162], NOSE: [671, 1164],
+    APUM: [774, 1092], APUS: [777, 1152], OVHDLT: [870, 1084], ICEIND: [950, 1082], DOME: [1025, 1082], ANNLT: [1108, 1080], SEATBELT: [870, 1140], NOSMOKE: [940, 1140], EXITLT: [1108, 1136],
+    ELAC2: [1259, 578], SEC2: [1326, 577], SEC3: [1391, 576], FAC2: [1458, 574], AFTISOL: [1478, 652], DISCHF: [1252, 796], SMOKEFWD: [1297, 800], SMOKETEST: [1363, 798], SMOKEAFT: [1438, 800], DISCHA: [1493, 794],
+    BLOWER: [1253, 886], EXTRACT: [1325, 886], CABFANS: [1491, 886], MANSTART1: [1258, 978], MANSTART2: [1335, 974], N1MODE1: [1425, 972], N1MODE2: [1499, 972], WIPERR: [1305, 1080], RPLNTR: [1418, 1052] };
+  /* Feste Beschriftungen: [x, y, Text, Größe, Ausrichtung] */
+  var TXT = [[172, 160, 'ADIRS', 15], [180, 470, 'FLT CTL', 14], [180, 556, 'EVAC', 14], [175, 640, 'EMER ELEC PWR', 13], [82, 729, 'GPWS', 10], [52, 816, 'RCDR', 13], [52, 912, 'OXYGEN', 12], [172, 962, 'CALLS', 14], [140, 1044, 'RAIN RPLNT', 13], [272, 1044, 'WIPER', 11],
+    [517, 182, 'ENG 1', 18], [752, 168, 'APU', 18], [992, 172, 'ENG 2', 18], [772, 946, 'PROBE / WINDOW HEAT', 11], [535, 950, 'ANTI ICE', 13], [955, 944, 'CABIN PRESS', 12], [540, 1044, 'EXT LT', 12], [768, 1040, 'APU', 13], [990, 1040, 'INT LT', 12],
+    [1358, 532, 'FLT CTL', 13], [1290, 622, 'CARGO VENT', 10], [1345, 752, 'CARGO  SMOKE', 10], [1366, 842, 'VENTILATION', 10], [1296, 930, 'ENG MAN START', 9], [1462, 930, 'ENG N1 MODE', 9], [1305, 1032, 'WIPER', 10], [1418, 1028, 'RAIN RPLNT', 10],
+    [441, 593, 'GALY & CAB', 9], [634, 546, 'BAT 1', 9], [742, 540, 'BAT', 9], [846, 546, 'BAT 2', 9], [930, 552, 'AC ESS FEED', 9], [662, 650, 'APU GEN', 9], [866, 638, 'EXT PWR', 9], [442, 652, 'IDG 1', 9], [1090, 634, 'IDG 2', 9], [527, 652, 'GEN 1', 9], [1007, 642, 'GEN 2', 9], [765, 630, 'BUS TIE', 9],
+    [455, 736, 'PACK FLOW', 9], [1075, 734, 'HOT AIR', 9], [430, 826, 'PACK 1', 9], [1108, 796, 'PACK 2', 9], [530, 860, 'ENG 1 BLEED', 9], [656, 856, 'RAM AIR', 9], [770, 856, 'APU BLEED', 9], [895, 818, 'X BLEED', 9], [1013, 850, 'ENG 2 BLEED', 9]];
+  /* Systembild-Linien (Synoptik) und Kästen */
+  var SYN = [
+    /* HYD */ 'M517 362 V318', 'M517 318 L517 312', 'M758 356 V306', 'M996 350 V300', 'M560 318 H710', 'M880 318 H960', 'M640 330 H700',
+    /* FUEL */ 'M486 472 V448 H550 V472', 'M518 448 V436', 'M690 470 V444 H833 V468', 'M681 444 V430', 'M968 462 V440 H1038 V462', 'M998 440 V424', 'M518 436 V430', 'M550 448 H690', 'M833 444 H968',
+    /* ELEC */ 'M518 562 V594', 'M518 616 V666', 'M560 606 H720', 'M812 606 H970', 'M1008 550 V582', 'M1010 604 V654', 'M470 690 H500', 'M1035 676 H1062', 'M560 640 H1000', 'M765 640 V632',
+    /* AIR COND */ 'M560 812 H1020', 'M560 812 V870', 'M770 812 V870', 'M1013 812 V860', 'M656 812 V860', 'M520 830 H560', 'M1020 830 H1060', 'M640 812 V804', 'M767 812 V804', 'M893 812 V804' ];
+  var BOX = [[517, 300, 'GREEN'], [758, 294, 'BLUE'], [996, 288, 'YELLOW'], [518, 424, 'ENG 1'], [681, 420, 'APU'], [998, 412, 'ENG 2'], [518, 550, 'DC BUS 1'], [518, 606, 'AC BUS 1'], [767, 600, 'AC ESS BUS'], [1008, 538, 'DC BUS 2'], [1010, 594, 'AC BUS 2'], [640, 734, 'COCKPIT'], [767, 732, 'FWD CABIN'], [893, 728, 'AFT CABIN'], [540, 828, 'PACK 1'], [1028, 818, 'PACK 2']];
+  var SIDE = [[362, 222, 'FIRE'], [1146, 222, 'FIRE'], [362, 344, 'HYD'], [1146, 344, 'HYD'], [362, 462, 'FUEL'], [1146, 462, 'FUEL'], [362, 622, 'ELEC'], [1146, 622, 'ELEC'], [362, 824, 'AIR COND'], [1146, 824, 'AIR COND']];
+
+  function t(x, y, s, size, anchor, cls) { return '<text x="' + x + '" y="' + y + '" font-size="' + (size || 9) + '" text-anchor="' + (anchor || 'middle') + '"' + (cls ? ' class="' + cls + '"' : '') + '>' + esc(s) + '</text>'; }
+  function screw(x, y) { return '<circle cx="' + x + '" cy="' + y + '" r="5" class="ovscr"/><path d="M' + (x - 3) + ' ' + (y - 1) + 'L' + (x + 3) + ' ' + (y + 1) + '" class="ovslot"/>'; }
+  function legend(c) { /* Texte und Farben der beiden Leuchtfelder */
+    var top = c.k === 'ext' || c.k === 'apustart' ? 'AVAIL' : c.top || (c.f ? (typeof c.f === 'string' ? c.f : 'FAULT') : ''), lo = c.k === 'ext' || c.k === 'apustart' ? 'ON' : c.lo || (c.m === 'on' ? 'ON' : 'OFF');
+    return { top: top, lo: lo };
+  }
+  var LC = { FAULT: 'a', SMOKE: 'a', DISCH: 'a', SQUIB: 'w', FIRE: 'r', DISC: 'a', MAN: 'w', AVAIL: 'g', ON: 'b', 'MAN ON': 'b', OFF: 'w', ALTN: 'w', TEST: 'w', EMER: 'a', 'SYS ON': 'w' };
+  function pbSvg(c, x, y) {
+    var v = val(c), l = lit(c), g = legend(c), w = 46, h = 46, big = c.g === 'redbig';
+    var topLit = c.k === 'ext' || c.k === 'apustart' ? l.top : c.top && !c.f ? (c.m === 'on' ? v === 1 && power() : 0) : l.f;
+    var s = '<g class="ovpb" data-a="pb" data-id="' + c.id + '">';
+    if (big) { /* Feuergriff */
+      s += '<rect x="' + (x - 64) + '" y="' + (y - 30) + '" width="128" height="60" rx="6" class="ovfire' + (v ? ' on' : '') + '"/><rect x="' + (x - 46) + '" y="' + (y - 14) + '" width="92" height="28" rx="3" class="ovfirew"/>' + t(x, y + 3, 'FIRE', 20, 'middle', 'ovfiret') + t(x, y + 20, 'PUSH', 10, 'middle', 'ovfiret2') + '<circle cx="' + x + '" cy="' + (y + 38) + '" r="6" class="ovfirering"/>';
+      return s + '</g>';
+    }
+    if (c.r) { s += '<circle cx="' + x + '" cy="' + y + '" r="15" class="ovround"/><circle cx="' + x + '" cy="' + y + '" r="10" class="ovround2"/>'; return s + '</g>'; }
+    s += '<rect x="' + (x - w / 2 - 3) + '" y="' + (y - h / 2 - 3) + '" width="' + (w + 6) + '" height="' + (h + 6) + '" rx="3" class="ovbez"/><rect x="' + (x - w / 2) + '" y="' + (y - h / 2) + '" width="' + w + '" height="' + h + '" rx="2" class="ovcap"/>';
+    if (g.top) s += '<rect x="' + (x - 18) + '" y="' + (y - 19) + '" width="36" height="15" rx="1" class="ovleg k' + (LC[g.top] || 'w') + (topLit ? ' lit' : '') + '"/>' + t(x, y - 8, g.top, 8, 'middle', 'ovlt k' + (LC[g.top] || 'w') + (topLit ? ' lit' : ''));
+    s += '<rect x="' + (x - 18) + '" y="' + (y + 3) + '" width="36" height="15" rx="1" class="ovleg k' + (LC[g.lo] || 'w') + (l.lo ? ' lit' : '') + (c.k === 'ext' || c.k === 'apustart' || g.lo === 'ON' ? ' ovfr' : '') + '"/>' + t(x, y + 14, g.lo, 8, 'middle', 'ovlt k' + (LC[g.lo] || 'w') + (l.lo ? ' lit' : ''));
+    if (c.g && c.g !== 'redbig') { var open = !!G[c.id], col = c.g === 'black' ? 'ovgb' : c.g === 'redgrid' ? 'ovgr grid' : 'ovgr';
+      s += open ? '<rect x="' + (x - 27) + '" y="' + (y - 52) + '" width="54" height="18" rx="3" class="' + col + '"/>' : '<rect x="' + (x - 27) + '" y="' + (y - 27) + '" width="54" height="56" rx="4" class="' + col + '"/>' + (c.g === 'redgrid' ? '<path d="M' + (x - 27) + ' ' + (y - 8) + 'H' + (x + 27) + 'M' + (x - 27) + ' ' + (y + 10) + 'H' + (x + 27) + 'M' + x + ' ' + (y - 27) + 'V' + (y + 29) + '" class="ovgline"/>' : ''); }
+    if (c.a) s += '<text x="' + (x + 33) + '" y="' + y + '" font-size="8" text-anchor="middle" class="ovsmall" transform="rotate(90 ' + (x + 33) + ' ' + y + ')">' + esc(c.a) + '</text>';
+    return s + '</g>';
+  }
+  function knSvg(c, x, y) {
+    var v = val(c), n = c.pos.length, A = angles(n), s = '<g class="ovkn" data-a="kn" data-id="' + c.id + '">';
+    for (var i = 0; i < n; i++) { if (!c.pos[i]) { var rr = (A[i] - 90) * Math.PI / 180; s += '<circle cx="' + (x + 30 * Math.cos(rr)).toFixed(1) + '" cy="' + (y + 30 * Math.sin(rr)).toFixed(1) + '" r="1.6" class="ovdot"/>'; continue; } var r = (A[i] - 90) * Math.PI / 180; s += t((x + 38 * Math.cos(r)).toFixed(1), (y + 38 * Math.sin(r) + 3).toFixed(1), c.pos[i], 9, 'middle', i === v ? 'ovsel' : ''); }
+    var a = A[v];
+    s += '<circle cx="' + x + '" cy="' + y + '" r="24" class="ovkbase"/><g transform="rotate(' + a + ' ' + x + ' ' + y + ')"><path d="M' + (x - 9) + ' ' + (y + 18) + ' L' + (x - 6) + ' ' + (y - 22) + ' Q' + x + ' ' + (y - 27) + ' ' + (x + 6) + ' ' + (y - 22) + ' L' + (x + 9) + ' ' + (y + 18) + ' Z" class="ovkhead"/><line x1="' + x + '" y1="' + (y - 20) + '" x2="' + x + '" y2="' + (y - 4) + '" class="ovkmark"/></g>';
+    return s + '</g>';
+  }
+  function tgSvg(c, x, y) {
+    var v = val(c), n = c.pos.length, s = '<g class="ovtg" data-a="tg" data-id="' + c.id + '">';
+    for (var i = 0; i < n; i++) { if (!c.pos[i]) continue; var yy = y - 20 + (n === 1 ? 20 : 40 * i / (n - 1)); s += t(x + 18, yy + 3, c.pos[i], 9, 'start', i === v ? 'ovsel' : ''); }
+    var ang = n === 1 ? 0 : -50 + 100 * v / (n - 1);
+    s += '<rect x="' + (x - 14) + '" y="' + (y - 14) + '" width="28" height="28" rx="14" class="ovtbase"/><circle cx="' + x + '" cy="' + y + '" r="9" class="ovtnut"/><g transform="rotate(' + (ang < 0 ? 180 + ang : ang) + ' ' + x + ' ' + y + ')"><rect x="' + (x - 3.5) + '" y="' + y + '" width="7" height="26" rx="3" class="ovtlever"/><circle cx="' + x + '" cy="' + (y + 27) + '" r="5" class="ovtlever"/></g>';
+    return s + '</g>';
+  }
+  function ovhdSvg() {
+    var il = power() ? val(find('OVHDLT')) : 0, dm = power() ? 2 - val(find('DOME')) : 0;
+    var s = '<svg class="ovsvg' + (il ? ' integ i' + il : '') + (dm ? ' dome d' + dm : '') + '" viewBox="0 0 ' + OW + ' ' + OH + '" width="' + OW + '" height="' + OH + '" xmlns="http://www.w3.org/2000/svg">';
+    s += '<rect width="' + OW + '" height="' + OH + '" class="ovbg"/>';
+    PNL.forEach(function (p) { s += '<rect x="' + p[0] + '" y="' + p[1] + '" width="' + p[2] + '" height="' + p[3] + '" rx="4" class="ovpnl"/>' + screw(p[0] + 12, p[1] + 12) + screw(p[0] + p[2] - 12, p[1] + 12) + screw(p[0] + 12, p[1] + p[3] - 12) + screw(p[0] + p[2] - 12, p[1] + p[3] - 12); });
+    SYN.forEach(function (d) { s += '<path d="' + d + '" class="ovsyn"/>'; });
+    BOX.forEach(function (b) { var w = b[2].length * 6.2 + 14; s += '<rect x="' + (b[0] - w / 2) + '" y="' + (b[1] - 8) + '" width="' + w + '" height="16" class="ovbox"/>' + t(b[0], b[1] + 4, b[2], 9); });
+    SIDE.forEach(function (d) { var ch = d[2].replace(' ', '').split(''); ch.forEach(function (k, i) { s += t(d[0], d[1] - ch.length * 7 + i * 14, k, 13, 'middle', 'ovside'); }); });
+    TXT.forEach(function (d) { s += t(d[0], d[1], d[2], d[3] || 9, d[4] || 'middle', d[3] >= 11 ? 'ovtitle' : ''); });
+    /* Batterie-Anzeigen */
+    [[634, 567, '27.6 V'], [846, 562, '28.5 V']].forEach(function (d) { s += '<rect x="' + (d[0] - 40) + '" y="' + (d[1] - 14) + '" width="80" height="28" rx="2" class="ovds"/>' + (power() ? t(d[0], d[1] + 6, d[2], 16, 'middle', 'ovdst') : ''); });
+    s += '<rect x="148" y="170" width="50" height="16" rx="2" class="ovds"/>' + t(172, 404, 'ON BAT', 9);
+    /* Bedienelemente */
+    Object.keys(POS).forEach(function (id) { var c = find(id), p = POS[id]; if (!c) return; REG[id] = c;
+      var lab = LABS[id] || c.lab;
+      if (!(id in NOLAB)) s += t(p[0], p[1] - (c.k === 'kn' ? 46 : c.k === 'tg' ? 30 : c.g === 'redbig' ? 40 : c.r ? 22 : 30), lab, 9, 'middle', 'ovlab');
+      s += c.k === 'kn' ? knSvg(c, p[0], p[1]) : c.k === 'tg' ? tgSvg(c, p[0], p[1]) : pbSvg(c, p[0], p[1]); });
+    /* drittes Audio-Bedienteil oben rechts (nur Zierde) */
+    for (var i = 0; i < 7; i++) { var x = 1218 + i * 38.5; s += '<rect x="' + (x - 14) + '" y="28" width="28" height="18" rx="2" class="ovcap"/><rect x="' + (x - 10) + '" y="30" width="20" height="4" class="ovleg kg lit"/>' + t(x, 44, i === 5 ? 'MECH' : i === 6 ? 'ATT' : 'CALL', 7) + '<circle cx="' + x + '" cy="64" r="11" class="ovkbase"/><circle cx="' + x + '" cy="128" r="11" class="ovkbase"/>'; }
+    s += t(1352, 150, '3rd AUDIO CONTROL PANEL', 9, 'middle', 'ovsmall');
+    return s + '</svg>';
+  }
+  var LABS = { LTK1: 'L TK 1', LTK2: 'L TK 2', CTK1: 'CTR TK 1', CTK2: 'CTR TK 2', RTK1: 'R TK 1', RTK2: 'R TK 2', ICEIND: 'ICE IND & STBY', OVHDLT: 'OVHD INTEG LT' };
+  var NOLAB = { ENG1FIRE: 1, APUFIRE: 1, ENG2FIRE: 1, TCOCK: 1, TFWD: 1, TAFT: 1, PROBE: 1, IR1: 1, IR2: 1, IR3: 1, RPLNTL: 1, RPLNTR: 1, WIPERL: 1, WIPERR: 1, BAT1: 1, BAT2: 1, ACESS: 1, GALLEY: 1, IDG1: 1, IDG2: 1, GEN1: 1, GEN2: 1, APUGEN: 1, EXT: 1, BUSTIE: 1, PACK1: 1, PACK2: 1, BLEED1: 1, BLEED2: 1, RAMAIR: 1, APUBLEED: 1, HOTAIR: 1, XBLEED: 1, PACKFLOW: 1 };
+
   function ovhd() {
     return '<div class="abbar"><button class="btn" data-a="preset" data-p="cold">Kalt und dunkel</button><button class="btn" data-a="preset" data-p="ready">Vor dem Anlassen</button>' +
       '<span class="ovz"><button class="btn" data-v="out" aria-label="Verkleinern">−</button><button class="btn" data-v="in" aria-label="Vergrößern">+</button><button class="btn" data-v="fit">Ganz</button><button class="btn" data-v="l">Links</button><button class="btn" data-v="c">Mitte</button><button class="btn" data-v="r">Rechts</button></span></div>' +
-      '<div class="ovview" id="ovview"><div class="ovstage" id="ovstage"><div class="abovh fix">' + col(OVERHEAD.left) + '<div class="abcol">' + OVERHEAD.center.filter(function (p) { return !/half/.test(p.cls || ''); }).map(panelH).join('') + '<div class="ovhalf">' + OVERHEAD.center.filter(function (p) { return /half/.test(p.cls || ''); }).map(panelH).join('') + '</div></div>' + col(OVERHEAD.right) + '</div></div></div>' +
+      '<div class="ovview" id="ovview"><div class="ovstage" id="ovstage">' + ovhdSvg() + '</div></div>' +
       '<p class="abnote">Mit einem Finger verschieben, mit zwei Fingern zoomen (am PC: Mausrad). Anordnung nach dem echten A320-Overhead, Zustände sind Beispiele.</p>';
   }
 
@@ -125,7 +226,7 @@ window.VpAAirbus = (function () {
   function applyV() { var st = stage(); if (!st) return; clampV(); st.style.transform = 'translate(' + V.x + 'px,' + V.y + 'px) scale(' + V.s + ')'; }
   function fitS() { var vw = view(), st = stage(); return Math.min(vw.clientWidth / st.offsetWidth, vw.clientHeight / st.offsetHeight); }
   function zoomAt(f, cx, cy) { var s2 = Math.max(Math.min(fitS(), 0.3), Math.min(2.2, V.s * f)); V.x = cx - (cx - V.x) * s2 / V.s; V.y = cy - (cy - V.y) * s2 / V.s; V.s = s2; applyV(); }
-  function goCol(i) { var st = stage(), c = st.querySelectorAll('.abovh.fix > .abcol')[i], vw = view(); V.s = Math.min(1, vw.clientWidth / (c.offsetWidth + 40)); V.x = -(c.offsetLeft - 20) * V.s; V.y = 0; applyV(); }
+  function goCol(i) { var X = [[0, 346], [340, 1166], [1164, 1569]][i], vw = view(); V.s = Math.min(1.2, vw.clientWidth / (X[1] - X[0] + 20)); V.x = -X[0] * V.s; V.y = 0; applyV(); }
   function setupView() {
     var vw = view(); if (!vw) return; sizeView();
     if (!V.s) { V.s = Math.max(fitS(), Math.min(0.6, vw.clientWidth / 600)); V.x = 0; V.y = 0; }
@@ -154,7 +255,7 @@ window.VpAAirbus = (function () {
   function find(id) {
     if (REG[id]) return REG[id];
     var res = null;
-    ['left', 'center', 'right'].forEach(function (k) { OVERHEAD[k].forEach(function (p) { p.rows.forEach(function (r) { r.forEach(function (c) { if (c.id === id) res = c; }); }); }); });
+    ['left', 'center', 'right', 'extra'].forEach(function (k) { OVERHEAD[k].forEach(function (p) { p.rows.forEach(function (r) { r.forEach(function (c) { if (c.id === id) res = c; }); }); }); });
     return res;
   }
   function onClick(e) {
