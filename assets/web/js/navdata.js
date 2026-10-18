@@ -50,5 +50,12 @@ window.VpANav = (function () {
   }
   function routeDist(from, route, to) { var ids = [from].concat(route, [to]), t = 0; for (var i = 1; i < ids.length; i++) { var d = distNm(ids[i - 1], ids[i]); if (d == null) return null; t += d; } return t; }
 
-  return { AIRPORTS: AIRPORTS, DB: DB, WPS: WPS, dist: distNm, distPts: distPts, bearing: bearing, routeFor: routeFor, routeDist: routeDist };
+  /* Ausweichflughäfen für ein Ziel: nächste Flughäfen, mindestens 30 NM entfernt, nie der Abflug. Nur Übungsdaten. */
+  function suggestAlt(to, from, n) {
+    if (!DB[to] || !DB[to].apt) return [];
+    return Object.keys(AIRPORTS).filter(function (k) { return k !== to && k !== from && distNm(to, k) >= 30; })
+      .map(function (k) { return { id: k, name: AIRPORTS[k][0], nm: Math.round(distNm(to, k)) }; })
+      .sort(function (a, b) { return a.nm - b.nm; }).slice(0, n || 3);
+  }
+  return { suggestAlt: suggestAlt, AIRPORTS: AIRPORTS, DB: DB, WPS: WPS, dist: distNm, distPts: distPts, bearing: bearing, routeFor: routeFor, routeDist: routeDist };
 })();

@@ -2,6 +2,7 @@
 (function () {
   var N = window.VpANav, P = window.VpAPlan;
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+  var altAuto = '';
   var F = { user: '', from: '', to: '', altn: '', flt: '', std: '10:00', routeTxt: '', crz: 350, ci: 30, pax: 140, cargo: 500, taxi: 200, cont: 5, fin: 30, extra: 0 };
   var plan = null, tab = 'form', lesson = 0, practice = false, saved = false, answer = '';
 
@@ -31,7 +32,7 @@
     return '<datalist id="apl">' + opts + '</datalist>' +
       '<div class="card"><div class="eyebrow">SIMBRIEF-NAME</div><div class="fgrid">' + field('Benutzername oder Pilot-ID', '<input class="in" id="f-user" value="' + esc(F.user) + '" autocomplete="off">') + '</div><p class="small">Mit diesem Namen holt sich die MCDU später deinen Plan.</p></div>' +
       '<div class="card"><div class="eyebrow">STRECKE</div><div class="fgrid">' + field('Abflug (ICAO)', ap('apl', 'f-from', F.from)) + field('Ziel (ICAO)', ap('apl', 'f-to', F.to)) + field('Alternate', ap('apl', 'f-altn', F.altn)) + field('Flugnummer', '<input class="in" id="f-flt" value="' + esc(F.flt) + '" maxlength="8" autocapitalize="characters" autocomplete="off">') + field('Abflugzeit (UTC)', '<input class="in" id="f-std" type="time" value="' + F.std + '">') + field('Flugzeug', '<input class="in" value="A320-251N (Airbus A320neo)" disabled>') + '</div>' +
-      (dist ? '<p class="small">Luftlinie ' + dist + ' NM. Flugzeug und Flughäfen sind Übungsdaten (Auswahl in der Liste).</p>' : '<p class="small">Tippe einen ICAO-Code. Es gibt 25 Flughäfen zur Auswahl, zum Beispiel EDDF, EDDM, EDDH, EDDK.</p>') + '</div>' +
+      altHint() + (dist ? '<p class="small">Luftlinie ' + dist + ' NM. Flugzeug und Flughäfen sind Übungsdaten (Auswahl in der Liste).</p>' : '<p class="small">Tippe einen ICAO-Code. Es gibt 25 Flughäfen zur Auswahl, zum Beispiel EDDF, EDDM, EDDH, EDDK.</p>') + '</div>' +
       '<div class="card"><div class="eyebrow">ROUTE</div><div class="btnrow" style="margin-top:0"><button class="btn pri" id="f-auto" type="button">Route automatisch finden</button><button class="btn" id="f-clr" type="button">Leeren</button></div>' +
       '<label class="fl2" style="margin-top:10px"><span>Wegpunkte, mit Leerzeichen getrennt</span><input class="in" id="f-route" value="' + esc(F.routeTxt) + '" autocapitalize="characters" autocomplete="off"></label>' +
       (bad.length ? '<p class="small err">Unbekannt: ' + bad.map(esc).join(', ') + '. Nur Wegpunkte aus der Übungsdatenbank.</p>' : '<p class="small">Die Route fliegt von Punkt zu Punkt geradeaus („DCT“). Anflug- und Abflugverfahren (SID/STAR) gibt es in dieser Übung nicht.</p>') + '</div>' +
@@ -78,6 +79,25 @@
     root.innerHTML = tabs + guideH() + (tab === 'form' ? formH() : tab === 'ofp' ? ofpH() : myH());
     root.parentElement.scrollTop = y;
   }
+  function say(m) {
+    var t = document.createElement('div'); t.textContent = m;
+    t.style.cssText = 'position:fixed;left:16px;right:16px;bottom:84px;background:#223;color:#fff;padding:12px 14px;border-radius:10px;z-index:99;font:14px sans-serif';
+    document.body.appendChild(t); setTimeout(function () { t.remove(); }, 3500);
+  }
+  /* Alternate automatisch vorschlagen, sobald Abflug und Ziel stimmen. Eigene Eingaben bleiben stehen. */
+  function autoAlt() {
+    var ok = N.DB[F.from] && N.DB[F.from].apt && N.DB[F.to] && N.DB[F.to].apt && F.from !== F.to;
+    if (!ok) { if (F.altn === altAuto) F.altn = ''; altAuto = ''; return; }
+    var s = N.suggestAlt(F.to, F.from, 3)[0];
+    if (!F.altn || F.altn === altAuto || F.altn === F.to || F.altn === F.from) { F.altn = s ? s.id : ''; altAuto = F.altn; }
+  }
+  function altHint() {
+    if (!(N.DB[F.from] && N.DB[F.to] && N.DB[F.from].apt && N.DB[F.to].apt) || F.from === F.to) return '';
+    var l = N.suggestAlt(F.to, F.from, 3); if (!l.length) return '';
+    var h = '<p class="small" style="margin-bottom:6px">' + (F.altn && F.altn === altAuto ? 'Alternate automatisch gewählt: der nächste Flughafen zum Ziel. ' : '') + 'Vorschläge für ' + F.to + ' (Luftlinie vom Ziel):</p><div class="btnrow" style="margin-top:0;flex-wrap:wrap">';
+    l.forEach(function (a) { h += '<button class="btn' + (a.id === F.altn ? ' pri' : '') + '" type="button" data-altn="' + a.id + '">' + a.id + ' · ' + esc(a.name) + ' · ' + a.nm + ' NM</button>'; });
+    return h + '</div>';
+  }
   function readForm() {
     var g = function (id) { var e = root.querySelector('#' + id); return e ? e.value : null; };
     var m = { user: 'f-user', from: 'f-from', to: 'f-to', altn: 'f-altn', flt: 'f-flt', std: 'f-std', routeTxt: 'f-route', crz: 'f-crz', ci: 'f-ci', pax: 'f-pax', cargo: 'f-cargo', taxi: 'f-taxi', cont: 'f-cont', fin: 'f-fin', extra: 'f-extra' };
@@ -96,13 +116,14 @@
   function mount(r) {
     root = r; draw();
     root.addEventListener('input', function (e) { if (e.target.id === 'g-ans') answer = e.target.value; });
-    root.addEventListener('change', function (e) { if (tab === 'form' && e.target.id) readForm(); });
+    root.addEventListener('change', function (e) { if (tab === 'form' && e.target.id) { readForm(); if (e.target.id === 'f-from' || e.target.id === 'f-to') { autoAlt(); draw(); } else if (e.target.id === 'f-altn') altAuto = ''; } });
     root.addEventListener('click', function (e) {
       var b = e.target.closest('button,a'); if (!b) return; var id = b.id, t = b.dataset.t;
+      if (b.dataset.altn) { readForm(); F.altn = b.dataset.altn; altAuto = ''; draw(); return; }
       if (t) { if (t === 'prac') { practice = !practice; } else tab = t; draw(); return; }
-      if (id === 'f-auto') { readForm(); if (!N.DB[F.from] || !N.DB[F.to] || !N.DB[F.from].apt || !N.DB[F.to].apt) { alert('Trage zuerst Abflug und Ziel ein.'); return; } F.routeTxt = N.routeFor(F.from, F.to).join(' '); draw(); return; }
+      if (id === 'f-auto') { readForm(); if (!N.DB[F.from] || !N.DB[F.to] || !N.DB[F.from].apt || !N.DB[F.to].apt) { say('Trage zuerst Abflug und Ziel ein.'); return; } F.routeTxt = N.routeFor(F.from, F.to).join(' '); draw(); return; }
       if (id === 'f-clr') { F.routeTxt = ''; draw(); return; }
-      if (id === 'f-go') { var m = generate(); if (m) alert(m); return; }
+      if (id === 'f-go') { var m = generate(); if (m) say(m); return; }
       if (id === 'o-save') { if (plan && plan.ok) { var c = JSON.parse(JSON.stringify(plan)); c.user = F.user; P.add(c); saved = true; draw(); } return; }
       if (id === 'g-back') { lesson = Math.max(0, lesson - 1); draw(); return; }
       if (id === 'g-next') { lesson = Math.min(LESSONS.length - 1, lesson + 1); draw(); return; }
